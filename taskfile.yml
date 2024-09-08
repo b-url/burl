@@ -11,12 +11,43 @@ tasks:
     cmds:
       - "{{.SHELL_TO_USE}} scripts/generate-labeler.sh"
   
-  lint:
+  lint-fix:
     desc: "Lint Go Code"
     cmds:
       - "golangci-lint run --fix"
+  
+  lint:
+    desc: "Lint all modules"
+    cmds:
+      - task: lint-client
+      - task: lint-api
+      - task: lint-app
+  
+  lint-client:
+    internal: true
+    desc: "Lint the client module"
+    cmds:
+      - "cd client && golangci-lint run"
+  
+  lint-api:
+    internal: true
+    desc: "Lint the API module"
+    cmds:
+      - "cd api && golangci-lint run"
+
+  lint-app:
+    internal: true
+    desc: "Lint the app module"
+    cmds:
+      - "cd app && golangci-lint run"
 
   changelog:
     desc: "Generate a changelog for a pull request"
     cmds:
       - "{{.SHELL_TO_USE}} scripts/generate-pr-changelog.sh"
+
+  setup-git-hooks:
+    desc: "Set up Git hooks"
+    cmds:
+      - "chmod +x ./scripts/hooks/pre-commit"
+      - "git config core.hooksPath ./scripts/hooks"

@@ -47,7 +47,7 @@ install_go () {
         go version
         return
     else
-        curl -L https://git.io/vQhTU | bash -s -- --version 1.23.0
+        curl -L https://git.io/vQhTU | bash -s -- --version 1.23.1
     fi
 
     success "Finished setting up Go!"
@@ -132,6 +132,14 @@ install_packages() {
     success "Finished installing packages with Homebrew!"
 }
 
+# Setup git hooks.
+setup_git_hooks() {
+    header "Setting up git hooks 🎣"
+
+    task setup-git-hooks
+    success "Finished setting up git hooks!"
+}
+
 echo "Setting up your development environment..."
 
 install_go
@@ -139,5 +147,7 @@ install_brew
 install_volta
 install_node
 install_packages
+
+setup_git_hooks
 
 pretty_print "\nFinished setting up your development environment! 🎉" $GREEN $BOLD

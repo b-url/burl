@@ -30,6 +30,8 @@ jobs:
 
     - name: Lint Go Code
       uses: golangci/golangci-lint-action@v6.0.0
+      with:
+        working-directory: ${{ inputs.module_path }}
 
     - name: Test ${{ inputs.module_name }}
       run: go test -v ./...
