@@ -1,7 +1,22 @@
 version: '3'
 
+vars:
+  SHELL_TO_USE:
+    sh: |
+      echo ${SHELL_TO_USE:-$(basename $SHELL)}
+
 tasks:
   generate-labeler:
     desc: "Re-generate the GitHub labeler config"
     cmds:
-      - "bash scripts/generate-labeler.sh"
+      - "{{.SHELL_TO_USE}} scripts/generate-labeler.sh"
+  
+  lint:
+    desc: "Lint Go Code"
+    cmds:
+      - "golangci-lint run --fix"
+
+  changelog:
+    desc: "Generate a changelog for a pull request"
+    cmds:
+      - "{{.SHELL_TO_USE}} scripts/generate-pr-changelog.sh"
