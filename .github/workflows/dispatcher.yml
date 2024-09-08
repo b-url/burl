@@ -8,15 +8,16 @@ on:
     branches: [ "main" ]
 
 env:
-  GO_VERSION: "1.23.1"
+  GO_VERSION: '1.23.1'
 
 jobs:
-  detect-changes:
+  dispatch:
     runs-on: ubuntu-latest
     outputs:
       client_changed: ${{ steps.filter.outputs.client }}
       api_changed: ${{ steps.filter.outputs.api }}
       app_changed: ${{ steps.filter.outputs.app }}
+      go_version: ${{ env.GO_VERSION }} 
     steps:
       - uses: actions/checkout@v4
 
@@ -33,28 +34,28 @@ jobs:
               - 'app/**'
 
   build-client:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.client_changed == 'true'
+    needs: dispatch
+    if: needs.dispatch.outputs.client_changed == 'true'
     uses: ./.github/workflows/go-module-build.yml
     with:
       module_name: "client"
       module_path: "./client"
-      GO_VERSION: ${{ env.GO_VERSION }}
+      go_version: ${{ needs.dispatch.outputs.go_version }}
 
   build-api:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.api_changed == 'true'
+    needs: dispatch
+    if: needs.dispatch.outputs.api_changed == 'true'
     uses: ./.github/workflows/go-module-build.yml
     with:
       module_name: "api"
       module_path: "./api"
-      GO_VERSION: ${{ env.GO_VERSION }}
+      go_version: ${{ needs.dispatch.outputs.go_version }}
 
   build-app:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.app_changed == 'true'
+    needs: dispatch
+    if: needs.dispatch.outputs.app_changed == 'true'
     uses: ./.github/workflows/go-module-build.yml
     with:
       module_name: "app"
       module_path: "./app"
-      GO_VERSION: ${{ env.GO_VERSION }}
+      go_version: ${{ needs.dispatch.outputs.go_version }}
