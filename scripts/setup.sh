@@ -3,7 +3,7 @@
 # Exit when a command fails.
 set -euo pipefail
 
-BREW_PACKAGES=(go-task jq golangci-lint)
+BREW_PACKAGES=(go-task jq golangci-lint git-cliff)
 NODE_VERSION="20.17.0"
 
 BLACK="\033[30m"

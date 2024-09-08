@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  generate-labeler:
+    desc: "Re-generate the GitHub labeler config"
+    cmds:
+      - "bash scripts/generate-labeler.sh"
