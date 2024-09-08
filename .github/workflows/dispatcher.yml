@@ -1,0 +1,59 @@
+name: dispatcher
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  GO_VERSION: "1.23.0"
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      client_changed: ${{ steps.filter.outputs.client }}
+      api_changed: ${{ steps.filter.outputs.api }}
+      app_changed: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changes in modules
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            client:
+              - 'client/**'
+            api:
+              - 'api/**'
+            app:
+              - 'app/**'
+
+  build-client:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.client_changed == 'true'
+    uses: ./.github/workflows/go-module-build.yml
+    with:
+      module_name: "client"
+      module_path: "./client"
+      GO_VERSION: ${{ env.GO_VERSION }}
+
+  build-api:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api_changed == 'true'
+    uses: ./.github/workflows/go-module-build.yml
+    with:
+      module_name: "api"
+      module_path: "./api"
+      GO_VERSION: ${{ env.GO_VERSION }}
+
+  build-app:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.app_changed == 'true'
+    uses: ./.github/workflows/go-module-build.yml
+    with:
+      module_name: "app"
+      module_path: "./app"
+      GO_VERSION: ${{ env.GO_VERSION }}
