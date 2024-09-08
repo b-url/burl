@@ -19,28 +19,8 @@ tasks:
   lint:
     desc: "Lint all modules"
     cmds:
-      - task: lint-client
-      - task: lint-api
-      - task: lint-app
+      - "golangci-lint run"
   
-  lint-client:
-    internal: true
-    desc: "Lint the client module"
-    cmds:
-      - "cd client && golangci-lint run"
-  
-  lint-api:
-    internal: true
-    desc: "Lint the API module"
-    cmds:
-      - "cd api && golangci-lint run"
-
-  lint-app:
-    internal: true
-    desc: "Lint the app module"
-    cmds:
-      - "cd app && golangci-lint run"
-
   changelog:
     desc: "Generate a changelog for a pull request"
     cmds:

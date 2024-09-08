@@ -1,21 +1,14 @@
 ---
-name: go-module-build 
+name: Go Test and Build
 
 on:
-  workflow_call:
-    inputs:
-      module_name:
-        description: 'Name of the module to build and test'
-        required: true
-        type: string
-      module_path:
-        description: 'Path to the module directory'
-        required: true
-        type: string
-      go_version:
-        description: 'Go version to use'
-        required: true
-        type: string
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  GO_VERSION: '1.23.1'
 
 jobs:
   build_and_test:
@@ -26,17 +19,16 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.go_version }}
+        go-version: ${{ env.GO_VERSION }} 
 
     - name: Lint Go Code
-      uses: golangci/golangci-lint-action@v6.0.0
-      with:
-        working-directory: ${{ inputs.module_path }}
+      uses: golangci/golangci-lint-action@v6.1.0
 
-    - name: Test ${{ inputs.module_name }}
+    - name: Test 
       run: go test -v ./...
-      working-directory: ${{ inputs.module_path }}
-    
-    - name: Build ${{ inputs.module_name }}
-      run: go build -o ${{ inputs.module_name }} 
-      working-directory: ${{ inputs.module_path }}
+      
+    - name: Build server 
+      run: go build -o server ./cmd/server
+
+    - name: Build burl
+      run: go build -o client ./cmd/burl
