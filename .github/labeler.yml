@@ -1,13 +1,16 @@
 # Automatically generated labeler config for Go modules
 
 app:
-  - './app/**'
+  - changed-files:
+      - any-glob-to-any-file: './app/**'
 
 api:
-  - './api/**'
+  - changed-files:
+      - any-glob-to-any-file: './api/**'
 
 client:
-  - './client/**'
+  - changed-files:
+      - any-glob-to-any-file: './client/**'
 
 documentation:
   - changed-files:

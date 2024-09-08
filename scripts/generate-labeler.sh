@@ -14,7 +14,8 @@ find . -name "go.mod" | while read -r go_mod; do
     module_name=$(basename "$module_dir")
 
     echo "$module_name:" >> $OUTPUT_FILE
-    echo "  - '$module_dir/**'" >> $OUTPUT_FILE
+    echo "  - changed-files:" >> $OUTPUT_FILE
+    echo "      - any-glob-to-any-file: '$module_dir/**'" >> $OUTPUT_FILE
     echo "" >> $OUTPUT_FILE
   fi
 done
