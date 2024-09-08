@@ -2,7 +2,7 @@
 
 app:
   - changed-files:
-      - any-glob-to-any-file: './app/**'
+      - any-glob-to-any-file: 'app/**/*'
 
 api:
   - changed-files:
