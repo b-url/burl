@@ -6,11 +6,11 @@ app:
 
 api:
   - changed-files:
-      - any-glob-to-any-file: './api/**'
+      - any-glob-to-any-file: 'api/**/*'
 
 client:
   - changed-files:
-      - any-glob-to-any-file: './client/**'
+      - any-glob-to-any-file: 'client/**/*'
 
 documentation:
   - changed-files:

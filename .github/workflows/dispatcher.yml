@@ -1,5 +1,5 @@
 ---
-name: dispatcher
+name: CI Dispatcher 
 
 on:
   push:
@@ -34,6 +34,7 @@ jobs:
               - 'app/**'
 
   build-client:
+    name: Build Client Module
     needs: dispatch
     if: needs.dispatch.outputs.client_changed == 'true'
     uses: ./.github/workflows/go-module-build.yml
@@ -43,6 +44,7 @@ jobs:
       go_version: ${{ needs.dispatch.outputs.go_version }}
 
   build-api:
+    name: Build API Module
     needs: dispatch
     if: needs.dispatch.outputs.api_changed == 'true'
     uses: ./.github/workflows/go-module-build.yml
@@ -52,6 +54,7 @@ jobs:
       go_version: ${{ needs.dispatch.outputs.go_version }}
 
   build-app:
+    name: Build App Module
     needs: dispatch
     if: needs.dispatch.outputs.app_changed == 'true'
     uses: ./.github/workflows/go-module-build.yml

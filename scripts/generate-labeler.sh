@@ -12,10 +12,11 @@ find . -name "go.mod" | while read -r go_mod; do
 
   if [ "$module_dir" != "." ]; then
     module_name=$(basename "$module_dir")
+    module_dir=$(echo "$module_dir" | sed 's|^\./||')
 
     echo "$module_name:" >> $OUTPUT_FILE
     echo "  - changed-files:" >> $OUTPUT_FILE
-    echo "      - any-glob-to-any-file: '$module_dir/**'" >> $OUTPUT_FILE
+    echo "      - any-glob-to-any-file: '$module_dir/**/*'" >> $OUTPUT_FILE
     echo "" >> $OUTPUT_FILE
   fi
 done
