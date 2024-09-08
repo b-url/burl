@@ -50,4 +50,5 @@ tasks:
     desc: "Set up Git hooks"
     cmds:
       - "chmod +x ./scripts/hooks/pre-commit"
+      - "chmod +x ./scripts/hooks/prepare-commit-msg"
       - "git config core.hooksPath ./scripts/hooks"

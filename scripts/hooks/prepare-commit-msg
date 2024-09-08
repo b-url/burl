@@ -1,0 +1,14 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+REGEX="^((Merge[ a-z-]* branch.*)|(Revert*)|((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(.*\))?!?: .*))"
+
+if [[ ! "$COMMIT_MSG" =~ $REGEX ]]; then
+    RED='\033[0;31m'
+    RESET='\033[0m'
+    
+    echo -e "${RED}Error: Commit message does not follow the Conventional Commits format.${RESET}"
+    echo "Example: feat(ui): add new button component"
+    exit 1
+fi

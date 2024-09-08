@@ -2,11 +2,14 @@
 
 set -euo pipefail
 
-echo "Running Go linter..."
+linter() {
+  echo "Running Go linter..."
+  if task lint; then
+    echo "Linter passed!"
+  else
+    echo "Linter failed. Please fix the issues before committing."
+    exit 1
+  fi
+}
 
-if task lint; then
-  echo "Linter passed!"
-else
-  echo "Linter failed. Please fix the issues before committing."
-  exit 1
-fi
+linter
