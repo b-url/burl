@@ -1,0 +1,34 @@
+version: '3'
+
+vars:
+  SHELL_TO_USE:
+    sh: |
+      echo ${SHELL_TO_USE:-$(basename $SHELL)}
+
+tasks:
+  generate-labeler:
+    desc: "Re-generate the GitHub labeler config"
+    cmds:
+      - "{{.SHELL_TO_USE}} scripts/generate-labeler.sh"
+  
+  lint-fix:
+    desc: "Lint Go Code"
+    cmds:
+      - "golangci-lint run --fix"
+  
+  lint:
+    desc: "Lint all modules"
+    cmds:
+      - "golangci-lint run"
+  
+  changelog:
+    desc: "Generate a changelog for a pull request"
+    cmds:
+      - "{{.SHELL_TO_USE}} scripts/generate-pr-changelog.sh"
+
+  setup-git-hooks:
+    desc: "Set up Git hooks"
+    cmds:
+      - "chmod +x ./scripts/hooks/pre-commit"
+      - "chmod +x ./scripts/hooks/prepare-commit-msg"
+      - "git config core.hooksPath ./scripts/hooks"

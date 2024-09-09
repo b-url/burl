@@ -1,0 +1,21 @@
+# Automatically generated labeler config for Go modules
+
+app:
+  - changed-files:
+      - any-glob-to-any-file: 'app/**/*'
+
+api:
+  - changed-files:
+      - any-glob-to-any-file: 'api/**/*'
+
+client:
+  - changed-files:
+      - any-glob-to-any-file: 'client/**/*'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
