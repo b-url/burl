@@ -1,0 +1,9 @@
+services:
+  burl:
+    image: burl
+    build:
+      dockerfile: Dockerfile
+      target: debug
+    command: [ "--", "serve", "account-gateway" ]
+    ports:
+      - "8080:8080"
