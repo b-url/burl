@@ -1,0 +1,183 @@
+openapi: 3.0.0
+info:
+  title: burl API
+  version: v1
+tags: []
+paths:
+  /users/{userId}/collections/{collectionId}/bookmarks:
+    post:
+      operationId: Bookmarks_create
+      description: Create a bookmark
+      parameters:
+        - $ref: '#/components/parameters/BookmarkParentKey.userId'
+        - $ref: '#/components/parameters/BookmarkParentKey.collectionId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        '201':
+          description: Resource create operation completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkCreate'
+components:
+  parameters:
+    BookmarkParentKey.collectionId:
+      name: collectionId
+      in: path
+      required: true
+      schema:
+        type: string
+    BookmarkParentKey.userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    Bookmark:
+      type: object
+      required:
+        - name
+        - uid
+        - url
+        - tags
+        - createTime
+        - updateTime
+      properties:
+        name:
+          type: string
+          readOnly: true
+        uid:
+          type: string
+          readOnly: true
+        url:
+          type: string
+        displayName:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+      description: Bookmark is a resource that represents a saved URL.
+    BookmarkCreate:
+      type: object
+      required:
+        - url
+        - tags
+      properties:
+        url:
+          type: string
+        displayName:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+      description: Resource create operation model.
+    Collection:
+      type: object
+      required:
+        - name
+        - uid
+        - displayName
+        - createTime
+        - updateTime
+      properties:
+        name:
+          type: string
+          readOnly: true
+        uid:
+          type: string
+          readOnly: true
+        displayName:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+    Error:
+      type: object
+      required:
+        - type
+        - code
+        - message
+        - details
+      properties:
+        type:
+          $ref: '#/components/schemas/ErrorType'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: {}
+      description: Error is the response model when an API call is unsuccessful.
+    ErrorCode:
+      type: string
+      enum:
+        - parameter_invalid
+        - parameter_missing
+        - processing_error
+        - resource_already_exists
+        - resource_missing
+    ErrorType:
+      type: string
+      enum:
+        - api_error
+        - invalid_request_error
+    User:
+      type: object
+      required:
+        - name
+        - uid
+        - createTime
+        - updateTime
+      properties:
+        name:
+          type: string
+          readOnly: true
+        uid:
+          type: string
+          readOnly: true
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+    Versions:
+      type: string
+      enum:
+        - v1
