@@ -14,9 +14,9 @@ ENTRYPOINT ["dlv", "debug", "--continue", "--headless", "--listen=:2345", "--api
 FROM base AS builder
 COPY --from=base /burl /burl
 WORKDIR /burl/cmd/server
-RUN go build -o /burl/bin/lingo 
+RUN go build -o /burl/bin/burl 
 
 FROM gcr.io/distroless/static-debian11 as prod
-COPY --from=builder /burl/bin/lingo /lingo
+COPY --from=builder /burl/bin/burl /burl
 EXPOSE 8080
-ENTRYPOINT ["./lingo"]
+ENTRYPOINT ["./burl"]
