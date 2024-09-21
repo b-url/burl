@@ -32,3 +32,9 @@ tasks:
       - "chmod +x ./scripts/hooks/pre-commit"
       - "chmod +x ./scripts/hooks/prepare-commit-msg"
       - "git config core.hooksPath ./scripts/hooks"
+
+  openapi:
+    desc: "Generate OpenAPI"
+    cmds:
+      - "{{.SHELL_TO_USE}} scripts/tsp-compile.sh"
+      - "go generate ./..."
