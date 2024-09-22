@@ -5,8 +5,8 @@ import "os"
 func main() {
 	rootCmd := NewRootCMD()
 	rootCmd.AddCommand(NewServeCMD())
-	err := rootCmd.Execute()
-	if err != nil {
+
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

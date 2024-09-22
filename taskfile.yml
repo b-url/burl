@@ -6,6 +6,10 @@ vars:
       echo ${SHELL_TO_USE:-$(basename $SHELL)}
 
 tasks:
+  install-burl:
+    desc: "Install the burl CLI locally"
+    cmds:
+      - "go install ./cmd/burl"
   generate-labeler:
     desc: "Re-generate the GitHub labeler config"
     cmds:
