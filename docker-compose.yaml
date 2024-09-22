@@ -1,0 +1,8 @@
+services:
+  burl:
+    image: burl
+    build:
+      dockerfile: Dockerfile
+      target: debug
+    ports:
+      - "8080:8080"
