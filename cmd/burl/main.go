@@ -1,5 +1,11 @@
 package main
 
+import "os"
+
 func main() {
-	// TODO: Implement the burl command as Cobra app.
+	rootCmd := NewRootCMD()
+
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
