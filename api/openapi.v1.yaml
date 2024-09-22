@@ -4,6 +4,27 @@ info:
   version: v1
 tags: []
 paths:
+  /test
+    get:
+      operationId: Test_get
+      description: Test endpoint
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Hello, world!
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /users/{userId}/collections/{collectionId}/bookmarks:
     post:
       operationId: Bookmarks_create
