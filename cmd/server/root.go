@@ -7,7 +7,7 @@ import (
 // NewRootCMD returns a new root command.
 func NewRootCMD() *cobra.Command {
 	return &cobra.Command{
-		Use:   "burl",
+		Use:   "burlserver",
 		Short: "b(ookmark)url is a developer first bookmark management tool written in Go",
 	}
 }

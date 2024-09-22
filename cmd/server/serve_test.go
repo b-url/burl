@@ -19,8 +19,8 @@ func TestNewServeCMD(t *testing.T) {
 func TestServe(t *testing.T) {
 	t.Run("should start the server", func(t *testing.T) {
 		c := config.New()
-		t.Setenv("BURL_DB_URL", "postgres://localhost:5432/burl")
-		t.Setenv("BURL_HTTP_PORT", "7777")
+		t.Setenv("BURLSERVER_DB_URL", "postgres://localhost:5432/burl")
+		t.Setenv("BURLSERVER_HTTP_PORT", "7777")
 		shutdown, err := Serve(context.TODO(), c, apiimpl.NewServer())
 		if err != nil {
 			t.Errorf("Serve() error = %v; want nil", err)
@@ -35,7 +35,7 @@ func TestServe(t *testing.T) {
 
 	t.Run("should return an error if the HTTP port is not set", func(t *testing.T) {
 		c := config.New()
-		t.Setenv("BURL_DB_URL", "postgres://localhost:5432/burl")
+		t.Setenv("BURLSERVER_DB_URL", "postgres://localhost:5432/burl")
 		_, err := Serve(context.TODO(), c, apiimpl.NewServer())
 		if err == nil {
 			t.Error("Serve() error = nil; want an error")
