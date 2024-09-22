@@ -2,11 +2,18 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"time"
 
+	api "github.com/b-url/burl/api/v1"
+	apiimpl "github.com/b-url/burl/cmd/server/api"
 	"github.com/b-url/burl/cmd/server/config"
 	"github.com/spf13/cobra"
 )
+
+const readTimeout = time.Second * 5
 
 // NewServeCMD returns a new serve command.
 func NewServeCMD() *cobra.Command {
@@ -15,22 +22,30 @@ func NewServeCMD() *cobra.Command {
 		Short: "Serve the burl server",
 		Long:  `This command starts the burl server.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return Serve(cmd.Context(), config.New())
+			_, err := Serve(cmd.Context(), config.New(), apiimpl.NewServer())
+			return err
 		},
 	}
 }
 
-// Serve starts the burl server.
-func Serve(_ context.Context, c *config.Config) error {
+// Serve starts the burl server and returns a function to shut it down.
+func Serve(_ context.Context, c *config.Config, server api.ServerInterface) (func(ctx context.Context) error, error) {
 	p, err := c.HTTPPort()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Printf("starting server on port %d\n", p)
-	d, err := c.DBURL()
-	if err != nil {
-		return err
+	fmt.Printf("Starting server on port %d\n", p)
+	r := http.NewServeMux()
+	h := api.HandlerFromMux(server, r)
+	s := &http.Server{
+		Handler:     h,
+		Addr:        fmt.Sprintf(":%d", p),
+		ReadTimeout: readTimeout,
 	}
-	fmt.Printf("connecting to database at %s\n", d)
-	return nil
+	go func() {
+		if err = s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+	return s.Shutdown, nil
 }
