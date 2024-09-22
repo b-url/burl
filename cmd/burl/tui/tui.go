@@ -19,7 +19,15 @@ func (m RootTui) Init() tea.Cmd {
 	return nil
 }
 
-func (m RootTui) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m RootTui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	//nolint:gocritic // Will be expanded in the future
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		}
+	}
 	return m, nil
 }
 
