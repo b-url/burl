@@ -1,5 +1,12 @@
 package main
 
+import "os"
+
 func main() {
-	// Implement the server command.
+	rootCmd := NewRootCMD()
+	rootCmd.AddCommand(NewServeCMD())
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
 }
