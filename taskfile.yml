@@ -6,7 +6,7 @@ vars:
       echo ${SHELL_TO_USE:-$(basename $SHELL)}
 
 tasks:
-  install-burl:
+  install:
     desc: "Install the burl CLI locally"
     cmds:
       - "go install ./cmd/burl"
