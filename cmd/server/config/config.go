@@ -23,7 +23,7 @@ type Config struct {
 // New returns a new Config.
 func New() *Config {
 	v := viper.New()
-	v.SetEnvPrefix("burl")
+	v.SetEnvPrefix("burlserver")
 	v.AutomaticEnv()
 	return &Config{
 		viper: v,
