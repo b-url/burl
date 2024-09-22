@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	v1 "github.com/b-url/burl/api/v1"
+	api "github.com/b-url/burl/api/v1"
 )
 
-var _ v1.ServerInterface = Server{}
+var _ api.ServerInterface = Server{}
 
 // Server implements v1.ServerInterface.
 type Server struct{}
