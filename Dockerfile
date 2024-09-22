@@ -16,7 +16,7 @@ COPY --from=base /burl /burl
 WORKDIR /burl/cmd/server
 RUN go build -o /burl/bin/burl 
 
-FROM gcr.io/distroless/static-debian11 as prod
+FROM gcr.io/distroless/static-debian11 AS prod
 COPY --from=builder /burl/bin/burl /burl
 EXPOSE 8080
 ENTRYPOINT ["./burl"]
