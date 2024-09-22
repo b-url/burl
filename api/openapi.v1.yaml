@@ -4,6 +4,82 @@ info:
   version: v1
 tags: []
 paths:
+  /users/{userId}/collections:
+    post:
+      operationId: Collections_create
+      description: Create a collection
+      parameters:
+        - $ref: '#/components/parameters/CollectionParentKey'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '201':
+          description: Resource create operation completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCreate'
+  /users/{userId}/collections/{collectionId}:
+    get:
+      operationId: Collections_read
+      description: Get a collection
+      parameters:
+        - $ref: '#/components/parameters/CollectionKey.userId'
+        - $ref: '#/components/parameters/CollectionKey.collectionId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      operationId: Collections_update
+      description: Update a collection
+      parameters:
+        - $ref: '#/components/parameters/CollectionKey.userId'
+        - $ref: '#/components/parameters/CollectionKey.collectionId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionUpdate'
   /users/{userId}/collections/{collectionId}/bookmarks:
     post:
       operationId: Bookmarks_create
@@ -36,15 +112,102 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BookmarkCreate'
+  /users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId}:
+    get:
+      operationId: Bookmarks_read
+      description: Get a bookmark
+      parameters:
+        - $ref: '#/components/parameters/BookmarkKey.userId'
+        - $ref: '#/components/parameters/BookmarkKey.collectionId'
+        - $ref: '#/components/parameters/BookmarkKey.bookmarkId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      operationId: Bookmarks_update
+      description: Update a bookmark
+      parameters:
+        - $ref: '#/components/parameters/BookmarkKey.userId'
+        - $ref: '#/components/parameters/BookmarkKey.collectionId'
+        - $ref: '#/components/parameters/BookmarkKey.bookmarkId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkUpdate'
 components:
   parameters:
-    BookmarkParentKey.collectionId:
+    BookmarkKey.bookmarkId:
+      name: bookmarkId
+      in: path
+      required: true
+      description: System-generated unique identifier for the bookmark.
+      schema:
+        type: string
+    BookmarkKey.collectionId:
       name: collectionId
+      in: path
+      required: true
+      description: System-generated unique identifier for the collection.
+      schema:
+        type: string
+    BookmarkKey.userId:
+      name: userId
       in: path
       required: true
       schema:
         type: string
+    BookmarkParentKey.collectionId:
+      name: collectionId
+      in: path
+      required: true
+      description: System-generated unique identifier for the collection.
+      schema:
+        type: string
     BookmarkParentKey.userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+    CollectionKey.collectionId:
+      name: collectionId
+      in: path
+      required: true
+      description: System-generated unique identifier for the collection.
+      schema:
+        type: string
+    CollectionKey.userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+    CollectionParentKey:
       name: userId
       in: path
       required: true
@@ -63,9 +226,11 @@ components:
       properties:
         name:
           type: string
+          description: Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})
           readOnly: true
         uid:
           type: string
+          description: System-generated unique identifier for the bookmark.
           readOnly: true
         url:
           type: string
@@ -99,6 +264,16 @@ components:
           items:
             type: string
       description: Resource create operation model.
+    BookmarkUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+      description: Resource create or update operation model.
     Collection:
       type: object
       required:
@@ -110,11 +285,18 @@ components:
       properties:
         name:
           type: string
+          description: Resource name (e.g., users/{user_id}/collections/{collection_id})
           readOnly: true
         uid:
           type: string
+          description: System-generated unique identifier for the collection.
+          readOnly: true
+        parentCollection:
+          type: string
           readOnly: true
         displayName:
+          type: string
+        description:
           type: string
         createTime:
           type: string
@@ -124,6 +306,24 @@ components:
           type: string
           format: date-time
           readOnly: true
+    CollectionCreate:
+      type: object
+      required:
+        - displayName
+      properties:
+        displayName:
+          type: string
+        description:
+          type: string
+      description: Resource create operation model.
+    CollectionUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        description:
+          type: string
+      description: Resource create or update operation model.
     Error:
       type: object
       required:
@@ -165,6 +365,7 @@ components:
       properties:
         name:
           type: string
+          description: Resource name (e.g., users/{user_id})
           readOnly: true
         uid:
           type: string

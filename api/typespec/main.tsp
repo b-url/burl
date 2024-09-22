@@ -19,13 +19,15 @@ enum Versions {
     v1,
 }
 
+
 @resource("users")
 model User {
-    @key("userId")
     @segment("users")
     @visibility("read")
-    name: string; // Resource name (e.g., users/{user_id})
+    @doc("Resource name (e.g., users/{user_id})")
+    name: string; 
     
+    @key("userId")
     @visibility("read")
     uid: string; 
 
@@ -40,16 +42,25 @@ model User {
 @resource("collections")
 @parentResource(User)
 model Collection {
-    @key("collectionId")
     @segment("collections")
     @visibility("read")
-    name: string; // Resource name (e.g., users/{user_id}/collections/{collection_id})
+    @doc("Resource name (e.g., users/{user_id}/collections/{collection_id})")
+    name: string; 
+    
+    @key("collectionId")
+    @docFromComment
+    @visibility("read")
+    @doc("System-generated unique identifier for the collection.")
+    uid: string; 
     
     @visibility("read")
-    uid: string; 
+    parentCollection?: string;
 
     @visibility("read", "create", "update")
-    displayName: string; 
+    displayName: string;
+    
+    @visibility("read", "create", "update")
+    description?: string;
 
     @visibility("read")
     createTime: utcDateTime; 
@@ -62,12 +73,15 @@ model Collection {
 @resource("bookmarks")
 @parentResource(Collection)
 model Bookmark {
-    @key
     @segment("bookmarks")
     @visibility("read")
-    name: string; // Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})
+    @doc("Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})")
+    name: string; 
     
+    @key("bookmarkId")
+    @docFromComment
     @visibility("read")
+    @doc("System-generated unique identifier for the bookmark.")
     uid: string; 
 
     @visibility("read", "create")
@@ -86,11 +100,31 @@ model Bookmark {
     updateTime: utcDateTime;
 }
 
-
-alias CreateBookmark = TypeSpec.Rest.Resource.ResourceCreate<Bookmark, Error>;
+alias BookmarkOperations = TypeSpec.Rest.Resource.ResourceOperations<Bookmark, Error>;
 
 @autoRoute
 interface Bookmarks {
     @doc("Create a bookmark")
-    op create is CreateBookmark.create;
+    op create is BookmarkOperations.create;
+
+    @doc("Get a bookmark")
+    op read is BookmarkOperations.get;
+
+    @doc("Update a bookmark")
+    op update is BookmarkOperations.update;
 }
+
+alias CollectionOperations = TypeSpec.Rest.Resource.ResourceOperations<Collection, Error>;
+
+@autoRoute
+interface Collections {
+    @doc("Create a collection")
+    op create is CollectionOperations.create;
+
+    @doc("Get a collection")
+    op read is CollectionOperations.get;
+
+    @doc("Update a collection")
+    op update is CollectionOperations.update;
+}
+

@@ -32,11 +32,15 @@ const (
 type Bookmark struct {
 	CreateTime  *time.Time `json:"createTime,omitempty"`
 	DisplayName *string    `json:"displayName,omitempty"`
-	Name        *string    `json:"name,omitempty"`
-	Tags        []string   `json:"tags"`
-	Uid         *string    `json:"uid,omitempty"`
-	UpdateTime  *time.Time `json:"updateTime,omitempty"`
-	Url         string     `json:"url"`
+
+	// Name Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})
+	Name *string  `json:"name,omitempty"`
+	Tags []string `json:"tags"`
+
+	// Uid System-generated unique identifier for the bookmark.
+	Uid        *string    `json:"uid,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	Url        string     `json:"url"`
 }
 
 // BookmarkCreate Resource create operation model.
@@ -44,6 +48,39 @@ type BookmarkCreate struct {
 	DisplayName *string  `json:"displayName,omitempty"`
 	Tags        []string `json:"tags"`
 	Url         string   `json:"url"`
+}
+
+// BookmarkUpdate Resource create or update operation model.
+type BookmarkUpdate struct {
+	DisplayName *string   `json:"displayName,omitempty"`
+	Tags        *[]string `json:"tags,omitempty"`
+}
+
+// Collection defines model for Collection.
+type Collection struct {
+	CreateTime  *time.Time `json:"createTime,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	DisplayName string     `json:"displayName"`
+
+	// Name Resource name (e.g., users/{user_id}/collections/{collection_id})
+	Name             *string `json:"name,omitempty"`
+	ParentCollection *string `json:"parentCollection,omitempty"`
+
+	// Uid System-generated unique identifier for the collection.
+	Uid        *string    `json:"uid,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
+}
+
+// CollectionCreate Resource create operation model.
+type CollectionCreate struct {
+	Description *string `json:"description,omitempty"`
+	DisplayName string  `json:"displayName"`
+}
+
+// CollectionUpdate Resource create or update operation model.
+type CollectionUpdate struct {
+	Description *string `json:"description,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
 // Error Error is the response model when an API call is unsuccessful.
@@ -60,20 +97,62 @@ type ErrorCode string
 // ErrorType defines model for ErrorType.
 type ErrorType string
 
+// BookmarkKeyBookmarkId defines model for BookmarkKey.bookmarkId.
+type BookmarkKeyBookmarkId = string
+
+// BookmarkKeyCollectionId defines model for BookmarkKey.collectionId.
+type BookmarkKeyCollectionId = string
+
+// BookmarkKeyUserId defines model for BookmarkKey.userId.
+type BookmarkKeyUserId = string
+
 // BookmarkParentKeyCollectionId defines model for BookmarkParentKey.collectionId.
 type BookmarkParentKeyCollectionId = string
 
 // BookmarkParentKeyUserId defines model for BookmarkParentKey.userId.
 type BookmarkParentKeyUserId = string
 
+// CollectionKeyCollectionId defines model for CollectionKey.collectionId.
+type CollectionKeyCollectionId = string
+
+// CollectionKeyUserId defines model for CollectionKey.userId.
+type CollectionKeyUserId = string
+
+// CollectionParentKey defines model for CollectionParentKey.
+type CollectionParentKey = string
+
+// CollectionsCreateJSONRequestBody defines body for CollectionsCreate for application/json ContentType.
+type CollectionsCreateJSONRequestBody = CollectionCreate
+
+// CollectionsUpdateJSONRequestBody defines body for CollectionsUpdate for application/json ContentType.
+type CollectionsUpdateJSONRequestBody = CollectionUpdate
+
 // BookmarksCreateJSONRequestBody defines body for BookmarksCreate for application/json ContentType.
 type BookmarksCreateJSONRequestBody = BookmarkCreate
+
+// BookmarksUpdateJSONRequestBody defines body for BookmarksUpdate for application/json ContentType.
+type BookmarksUpdateJSONRequestBody = BookmarkUpdate
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (POST /users/{userId}/collections)
+	CollectionsCreate(w http.ResponseWriter, r *http.Request, userId CollectionParentKey)
+
+	// (GET /users/{userId}/collections/{collectionId})
+	CollectionsRead(w http.ResponseWriter, r *http.Request, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId)
+
+	// (PATCH /users/{userId}/collections/{collectionId})
+	CollectionsUpdate(w http.ResponseWriter, r *http.Request, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId)
+
 	// (POST /users/{userId}/collections/{collectionId}/bookmarks)
 	BookmarksCreate(w http.ResponseWriter, r *http.Request, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId)
+
+	// (GET /users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId})
+	BookmarksRead(w http.ResponseWriter, r *http.Request, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId)
+
+	// (PATCH /users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId})
+	BookmarksUpdate(w http.ResponseWriter, r *http.Request, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -84,6 +163,99 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// CollectionsCreate operation middleware
+func (siw *ServerInterfaceWrapper) CollectionsCreate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId CollectionParentKey
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CollectionsCreate(w, r, userId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CollectionsRead operation middleware
+func (siw *ServerInterfaceWrapper) CollectionsRead(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId CollectionKeyUserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "collectionId" -------------
+	var collectionId CollectionKeyCollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collectionId", r.PathValue("collectionId"), &collectionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collectionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CollectionsRead(w, r, userId, collectionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CollectionsUpdate operation middleware
+func (siw *ServerInterfaceWrapper) CollectionsUpdate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId CollectionKeyUserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "collectionId" -------------
+	var collectionId CollectionKeyCollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collectionId", r.PathValue("collectionId"), &collectionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collectionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CollectionsUpdate(w, r, userId, collectionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // BookmarksCreate operation middleware
 func (siw *ServerInterfaceWrapper) BookmarksCreate(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +282,92 @@ func (siw *ServerInterfaceWrapper) BookmarksCreate(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BookmarksCreate(w, r, userId, collectionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// BookmarksRead operation middleware
+func (siw *ServerInterfaceWrapper) BookmarksRead(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId BookmarkKeyUserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "collectionId" -------------
+	var collectionId BookmarkKeyCollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collectionId", r.PathValue("collectionId"), &collectionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collectionId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "bookmarkId" -------------
+	var bookmarkId BookmarkKeyBookmarkId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "bookmarkId", r.PathValue("bookmarkId"), &bookmarkId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "bookmarkId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BookmarksRead(w, r, userId, collectionId, bookmarkId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// BookmarksUpdate operation middleware
+func (siw *ServerInterfaceWrapper) BookmarksUpdate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId BookmarkKeyUserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "collectionId" -------------
+	var collectionId BookmarkKeyCollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collectionId", r.PathValue("collectionId"), &collectionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collectionId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "bookmarkId" -------------
+	var bookmarkId BookmarkKeyBookmarkId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "bookmarkId", r.PathValue("bookmarkId"), &bookmarkId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "bookmarkId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BookmarksUpdate(w, r, userId, collectionId, bookmarkId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -239,7 +497,12 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	m.HandleFunc("POST "+options.BaseURL+"/users/{userId}/collections", wrapper.CollectionsCreate)
+	m.HandleFunc("GET "+options.BaseURL+"/users/{userId}/collections/{collectionId}", wrapper.CollectionsRead)
+	m.HandleFunc("PATCH "+options.BaseURL+"/users/{userId}/collections/{collectionId}", wrapper.CollectionsUpdate)
 	m.HandleFunc("POST "+options.BaseURL+"/users/{userId}/collections/{collectionId}/bookmarks", wrapper.BookmarksCreate)
+	m.HandleFunc("GET "+options.BaseURL+"/users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId}", wrapper.BookmarksRead)
+	m.HandleFunc("PATCH "+options.BaseURL+"/users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId}", wrapper.BookmarksUpdate)
 
 	return m
 }
