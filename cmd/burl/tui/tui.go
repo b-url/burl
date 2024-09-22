@@ -45,9 +45,10 @@ func (m RootTui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
-
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Open):
-			// TODO: Open URL
+			cmds = append(cmds, m.table.OpenSelected())
 		}
 	case tea.WindowSizeMsg:
 		m.height = msg.Height

@@ -16,8 +16,8 @@ func (k keyMap) ShortHelp() []key.Binding {
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Open},
 		{k.Help, k.Quit},
+		{k.Open},
 	}
 }
 

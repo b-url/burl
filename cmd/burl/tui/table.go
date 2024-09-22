@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"os/exec"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -65,4 +67,16 @@ func (t *Table) Update(msg tea.Msg) tea.Cmd {
 
 func (t *Table) View() string {
 	return baseStyle.Render(t.table.View())
+}
+
+func (t *Table) OpenSelected() tea.Cmd {
+	selected := t.table.SelectedRow()
+
+	c := exec.Command("open", selected[1]) //nolint:gosec // This is a CLI tool
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		if err != nil {
+			return err.Error()
+		}
+		return nil
+	})
 }
