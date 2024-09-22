@@ -7,10 +7,10 @@ import (
 )
 
 var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
 	BorderForeground(lipgloss.Color("240"))
 
 type Table struct {
+	width int
 	table table.Model
 }
 
@@ -40,6 +40,7 @@ func NewTable() *Table {
 		BorderForeground(lipgloss.Color("240")).
 		BorderBottom(true).
 		Bold(false)
+
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color("229")).
 		Background(lipgloss.Color("57")).
@@ -49,6 +50,11 @@ func NewTable() *Table {
 	return &Table{
 		table: t,
 	}
+}
+
+func (t *Table) SetSize(width int) {
+	t.width = width
+	t.table.SetWidth(width)
 }
 
 func (t *Table) Update(msg tea.Msg) tea.Cmd {

@@ -1,23 +1,28 @@
 package tui
 
 import (
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
 )
 
+const StatusBarHeight = 1
+
 var (
-	HelpStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	ColorOrange = lipgloss.Color("172")
+	HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+
+	collectionBackground = lipgloss.Color("164")
+	versionBackground    = lipgloss.Color("45")
 )
 
 type StatusBar struct {
-	keys              keyMap
-	help              help.Model
 	currentCollection string
+	version           string
+
+	height int
+	width  int
 }
 
-func NewStatusBar(keys keyMap, initCollection string) *StatusBar {
-	return &StatusBar{currentCollection: initCollection, keys: keys, help: help.New()}
+func NewStatusBar(initCollection string) *StatusBar {
+	return &StatusBar{currentCollection: initCollection, version: "v0.0.1-alpha"} // TODO: get version from somewhere
 }
 
 // Update updates the footer.
@@ -25,19 +30,31 @@ func (f *StatusBar) Update(collection string) {
 	f.currentCollection = collection
 }
 
+func (f *StatusBar) SetSize(width int) {
+	f.width = width
+}
+
 // View returns the footer view.
 func (f *StatusBar) View() string {
-	views := []string{}
+	width := lipgloss.Width
 
-	views = append(views, f.help.View(keys))
 	currentCollection := lipgloss.NewStyle().
-		Margin(0, 1).
 		Padding(0, 1).
 		Bold(true).
-		Background(ColorOrange).
+		Background(collectionBackground).
 		Render(f.currentCollection)
 
-	views = append(views, currentCollection)
+	version := lipgloss.NewStyle().
+		Padding(0, 1).
+		Background(versionBackground).
+		Render(f.version)
 
-	return lipgloss.JoinHorizontal(lipgloss.Left, views...)
+	space := lipgloss.NewStyle().
+		Background(lipgloss.Color("241")).
+		Padding(0, 1).
+		Height(f.height).
+		Width(f.width - width(currentCollection) - width(version)).
+		Render("")
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, currentCollection, space, version)
 }
