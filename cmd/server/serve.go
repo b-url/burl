@@ -51,7 +51,7 @@ func Serve(ctx context.Context, c *config.Config, server api.ServerInterface) er
 	// Start the server in a goroutine.
 	errChan := make(chan error, 1)
 	go func() {
-		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err = s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
 	}()
@@ -62,10 +62,10 @@ func Serve(ctx context.Context, c *config.Config, server api.ServerInterface) er
 		// Shutdown the server gracefully.
 		ctxShutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if err := s.Shutdown(ctxShutdown); err != nil {
+		if err = s.Shutdown(ctxShutdown); err != nil {
 			return err
 		}
-	case err := <-errChan:
+	case err = <-errChan:
 		return err
 	}
 
