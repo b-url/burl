@@ -13,9 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	readTimeout = time.Second * 5
-)
+const readTimeout = time.Second * 5
 
 // NewServeCMD returns a new serve command.
 func NewServeCMD() *cobra.Command {
