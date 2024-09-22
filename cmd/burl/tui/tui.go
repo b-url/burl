@@ -13,13 +13,15 @@ var _ tea.Model = RootTui{}
 
 type RootTui struct {
 	keys   keyMap
-	footer *Footer
+	table  *Table
+	footer *StatusBar
 }
 
 func New() *RootTui {
 	return &RootTui{
 		keys:   keys,
-		footer: NewFooter(keys, "currentCollection"),
+		table:  NewTable(),
+		footer: NewStatusBar(keys, "currentCollection"),
 	}
 }
 
@@ -28,6 +30,8 @@ func (m RootTui) Init() tea.Cmd {
 }
 
 func (m RootTui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	cmds := []tea.Cmd{}
+
 	//nolint:gocritic // Will be expanded in the future
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -37,12 +41,14 @@ func (m RootTui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	cmds = append(cmds, m.table.Update(msg))
+	return m, tea.Batch(cmds...)
 }
 
 func (m RootTui) View() string {
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
+		m.table.View(),
 		m.footer.View(),
 	)
 }
