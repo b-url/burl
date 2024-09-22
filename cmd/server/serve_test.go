@@ -28,7 +28,7 @@ func TestServe(t *testing.T) {
 		if shutdown == nil {
 			t.Error("Serve() shutdown = nil; want a function")
 		}
-		if err := shutdown(context.Background()); err != nil {
+		if err = shutdown(context.Background()); err != nil {
 			t.Errorf("shutdown() error = %v; want nil", err)
 		}
 	})

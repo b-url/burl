@@ -5,13 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
-	"github.com/b-url/burl/cmd/server/config"
-	"github.com/spf13/cobra"
+	"time"
 
 	api "github.com/b-url/burl/api/v1"
-	v1 "github.com/b-url/burl/api/v1"
 	apiimpl "github.com/b-url/burl/cmd/server/api"
+	"github.com/b-url/burl/cmd/server/config"
+	"github.com/spf13/cobra"
+)
+
+var (
+	readTimeout = time.Second * 5
 )
 
 // NewServeCMD returns a new serve command.
@@ -28,7 +31,7 @@ func NewServeCMD() *cobra.Command {
 }
 
 // Serve starts the burl server and returns a function to shut it down.
-func Serve(_ context.Context, c *config.Config, server v1.ServerInterface) (func(ctx context.Context) error, error) {
+func Serve(_ context.Context, c *config.Config, server api.ServerInterface) (func(ctx context.Context) error, error) {
 	p, err := c.HTTPPort()
 	if err != nil {
 		return nil, err
@@ -37,11 +40,12 @@ func Serve(_ context.Context, c *config.Config, server v1.ServerInterface) (func
 	r := http.NewServeMux()
 	h := api.HandlerFromMux(server, r)
 	s := &http.Server{
-		Handler: h,
-		Addr:    fmt.Sprintf(":%d", p),
+		Handler:     h,
+		Addr:        fmt.Sprintf(":%d", p),
+		ReadTimeout: readTimeout,
 	}
 	go func() {
-		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err = s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
 	}()
