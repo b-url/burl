@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"testing"
+	"time"
 
 	apiimpl "github.com/b-url/burl/cmd/server/api"
 	"github.com/b-url/burl/cmd/server/config"
@@ -21,22 +22,53 @@ func TestServe(t *testing.T) {
 		c := config.New()
 		t.Setenv("BURLSERVER_DB_URL", "postgres://localhost:5432/burl")
 		t.Setenv("BURLSERVER_HTTP_PORT", "7777")
-		shutdown, err := Serve(context.TODO(), c, apiimpl.NewServer())
-		if err != nil {
-			t.Errorf("Serve() error = %v; want nil", err)
+
+		// Create a context with cancel
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		// Run the server in a separate goroutine to simulate actual use
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- Serve(ctx, c, apiimpl.NewServer())
+		}()
+
+		// Give the server some time to start
+		time.Sleep(10 * time.Millisecond)
+
+		// Check if Serve returned an error
+		select {
+		case err := <-errChan:
+			if err != nil {
+				t.Errorf("Serve() error = %v; want nil", err)
+			}
+		default:
+			// No error yet, so assume it's running fine
 		}
-		if shutdown == nil {
-			t.Error("Serve() shutdown = nil; want a function")
-		}
-		if err = shutdown(context.Background()); err != nil {
-			t.Errorf("shutdown() error = %v; want nil", err)
+
+		// Now, simulate server shutdown
+		cancel()
+
+		// Wait for Serve to return
+		select {
+		case err := <-errChan:
+			if err != nil {
+				t.Errorf("Serve() error during shutdown = %v; want nil", err)
+			}
+		case <-time.After(2 * time.Second):
+			t.Error("Serve() did not return within 2 seconds after shutdown; likely hung")
 		}
 	})
 
 	t.Run("should return an error if the HTTP port is not set", func(t *testing.T) {
 		c := config.New()
 		t.Setenv("BURLSERVER_DB_URL", "postgres://localhost:5432/burl")
-		_, err := Serve(context.TODO(), c, apiimpl.NewServer())
+
+		// Use a context with a short timeout
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		err := Serve(ctx, c, apiimpl.NewServer())
 		if err == nil {
 			t.Error("Serve() error = nil; want an error")
 		}
