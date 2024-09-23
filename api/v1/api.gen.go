@@ -71,6 +71,12 @@ type Collection struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 }
 
+// CollectionChildren defines model for CollectionChildren.
+type CollectionChildren struct {
+	Bookmarks   []Bookmark   `json:"bookmarks"`
+	Collections []Collection `json:"collections"`
+}
+
 // CollectionCreate Resource create operation model.
 type CollectionCreate struct {
 	Description *string `json:"description,omitempty"`
@@ -153,6 +159,9 @@ type ServerInterface interface {
 
 	// (PATCH /users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId})
 	BookmarksUpdate(w http.ResponseWriter, r *http.Request, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId)
+
+	// (GET /users/{userId}/collections/{collectionId}/children)
+	CollectionsListChildren(w http.ResponseWriter, r *http.Request, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -377,6 +386,40 @@ func (siw *ServerInterfaceWrapper) BookmarksUpdate(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// CollectionsListChildren operation middleware
+func (siw *ServerInterfaceWrapper) CollectionsListChildren(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId CollectionKeyUserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "collectionId" -------------
+	var collectionId CollectionKeyCollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collectionId", r.PathValue("collectionId"), &collectionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collectionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CollectionsListChildren(w, r, userId, collectionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -503,6 +546,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc("POST "+options.BaseURL+"/users/{userId}/collections/{collectionId}/bookmarks", wrapper.BookmarksCreate)
 	m.HandleFunc("GET "+options.BaseURL+"/users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId}", wrapper.BookmarksRead)
 	m.HandleFunc("PATCH "+options.BaseURL+"/users/{userId}/collections/{collectionId}/bookmarks/{bookmarkId}", wrapper.BookmarksUpdate)
+	m.HandleFunc("GET "+options.BaseURL+"/users/{userId}/collections/{collectionId}/children", wrapper.CollectionsListChildren)
 
 	return m
 }

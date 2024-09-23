@@ -159,6 +159,28 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BookmarkUpdate'
+  /users/{userId}/collections/{collectionId}/children:
+    get:
+      operationId: Collections_listChildren
+      description: List all the children of a collection, including bookmarks and sub-collections.
+      parameters:
+        - $ref: '#/components/parameters/CollectionKey.userId'
+        - $ref: '#/components/parameters/CollectionKey.collectionId'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollectionChildren'
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   parameters:
     BookmarkKey.bookmarkId:
@@ -306,6 +328,20 @@ components:
           type: string
           format: date-time
           readOnly: true
+    CollectionChildren:
+      type: object
+      required:
+        - bookmarks
+        - collections
+      properties:
+        bookmarks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bookmark'
+        collections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collection'
     CollectionCreate:
       type: object
       required:

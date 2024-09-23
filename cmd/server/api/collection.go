@@ -33,3 +33,13 @@ func (s Server) CollectionsUpdate(
 	fmt.Printf("Updating collection %s for user %s\n", collectionID, userID)
 	w.WriteHeader(http.StatusNotImplemented)
 }
+
+func (s Server) CollectionsListChildren(
+	w http.ResponseWriter,
+	_ *http.Request,
+	userID string,
+	collectionID string,
+) {
+	fmt.Printf("Listing children of collection %s for user %s\n", collectionID, userID)
+	w.WriteHeader(http.StatusNotImplemented)
+}
