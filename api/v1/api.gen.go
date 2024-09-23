@@ -33,27 +33,33 @@ type Bookmark struct {
 	CreateTime  *time.Time `json:"createTime,omitempty"`
 	DisplayName *string    `json:"displayName,omitempty"`
 
-	// Name Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})
-	Name *string  `json:"name,omitempty"`
-	Tags []string `json:"tags"`
+	// Id System-generated unique identifier for the bookmark.
+	Id *string `json:"id,omitempty"`
 
-	// Uid System-generated unique identifier for the bookmark.
-	Uid        *string    `json:"uid,omitempty"`
+	// ParentId System-generated unique identifier for the parent collection.
+	ParentId   *string    `json:"parentId,omitempty"`
+	Tags       []string   `json:"tags"`
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	Url        string     `json:"url"`
 }
 
 // BookmarkCreate Resource create operation model.
 type BookmarkCreate struct {
-	DisplayName *string  `json:"displayName,omitempty"`
-	Tags        []string `json:"tags"`
-	Url         string   `json:"url"`
+	DisplayName *string `json:"displayName,omitempty"`
+
+	// ParentId System-generated unique identifier for the parent collection.
+	ParentId *string  `json:"parentId,omitempty"`
+	Tags     []string `json:"tags"`
+	Url      string   `json:"url"`
 }
 
 // BookmarkUpdate Resource create or update operation model.
 type BookmarkUpdate struct {
-	DisplayName *string   `json:"displayName,omitempty"`
-	Tags        *[]string `json:"tags,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+
+	// ParentId System-generated unique identifier for the parent collection.
+	ParentId *string   `json:"parentId,omitempty"`
+	Tags     *[]string `json:"tags,omitempty"`
 }
 
 // Collection defines model for Collection.
@@ -62,12 +68,12 @@ type Collection struct {
 	Description *string    `json:"description,omitempty"`
 	DisplayName string     `json:"displayName"`
 
-	// Name Resource name (e.g., users/{user_id}/collections/{collection_id})
-	Name             *string `json:"name,omitempty"`
+	// Id System-generated unique identifier for the collection.
+	Id               *string `json:"id,omitempty"`
 	ParentCollection *string `json:"parentCollection,omitempty"`
 
-	// Uid System-generated unique identifier for the collection.
-	Uid        *string    `json:"uid,omitempty"`
+	// ParentId System-generated unique identifier for the parent collection.
+	ParentId   *string    `json:"parentId,omitempty"`
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 }
 
@@ -81,12 +87,18 @@ type CollectionChildren struct {
 type CollectionCreate struct {
 	Description *string `json:"description,omitempty"`
 	DisplayName string  `json:"displayName"`
+
+	// ParentId System-generated unique identifier for the parent collection.
+	ParentId *string `json:"parentId,omitempty"`
 }
 
 // CollectionUpdate Resource create or update operation model.
 type CollectionUpdate struct {
 	Description *string `json:"description,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
+
+	// ParentId System-generated unique identifier for the parent collection.
+	ParentId *string `json:"parentId,omitempty"`
 }
 
 // Error Error is the response model when an API call is unsuccessful.
