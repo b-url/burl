@@ -36,11 +36,15 @@ const (
 type Bookmark struct {
 	CreateTime  *time.Time `json:"createTime,omitempty"`
 	DisplayName *string    `json:"displayName,omitempty"`
-	Name        *string    `json:"name,omitempty"`
-	Tags        []string   `json:"tags"`
-	Uid         *string    `json:"uid,omitempty"`
-	UpdateTime  *time.Time `json:"updateTime,omitempty"`
-	Url         string     `json:"url"`
+
+	// Name Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})
+	Name *string  `json:"name,omitempty"`
+	Tags []string `json:"tags"`
+
+	// Uid System-generated unique identifier for the bookmark.
+	Uid        *string    `json:"uid,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	Url        string     `json:"url"`
 }
 
 // BookmarkCreate Resource create operation model.
@@ -48,6 +52,39 @@ type BookmarkCreate struct {
 	DisplayName *string  `json:"displayName,omitempty"`
 	Tags        []string `json:"tags"`
 	Url         string   `json:"url"`
+}
+
+// BookmarkUpdate Resource create or update operation model.
+type BookmarkUpdate struct {
+	DisplayName *string   `json:"displayName,omitempty"`
+	Tags        *[]string `json:"tags,omitempty"`
+}
+
+// Collection defines model for Collection.
+type Collection struct {
+	CreateTime  *time.Time `json:"createTime,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	DisplayName string     `json:"displayName"`
+
+	// Name Resource name (e.g., users/{user_id}/collections/{collection_id})
+	Name             *string `json:"name,omitempty"`
+	ParentCollection *string `json:"parentCollection,omitempty"`
+
+	// Uid System-generated unique identifier for the collection.
+	Uid        *string    `json:"uid,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
+}
+
+// CollectionCreate Resource create operation model.
+type CollectionCreate struct {
+	Description *string `json:"description,omitempty"`
+	DisplayName string  `json:"displayName"`
+}
+
+// CollectionUpdate Resource create or update operation model.
+type CollectionUpdate struct {
+	Description *string `json:"description,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
 // Error Error is the response model when an API call is unsuccessful.
@@ -64,14 +101,41 @@ type ErrorCode string
 // ErrorType defines model for ErrorType.
 type ErrorType string
 
+// BookmarkKeyBookmarkId defines model for BookmarkKey.bookmarkId.
+type BookmarkKeyBookmarkId = string
+
+// BookmarkKeyCollectionId defines model for BookmarkKey.collectionId.
+type BookmarkKeyCollectionId = string
+
+// BookmarkKeyUserId defines model for BookmarkKey.userId.
+type BookmarkKeyUserId = string
+
 // BookmarkParentKeyCollectionId defines model for BookmarkParentKey.collectionId.
 type BookmarkParentKeyCollectionId = string
 
 // BookmarkParentKeyUserId defines model for BookmarkParentKey.userId.
 type BookmarkParentKeyUserId = string
 
+// CollectionKeyCollectionId defines model for CollectionKey.collectionId.
+type CollectionKeyCollectionId = string
+
+// CollectionKeyUserId defines model for CollectionKey.userId.
+type CollectionKeyUserId = string
+
+// CollectionParentKey defines model for CollectionParentKey.
+type CollectionParentKey = string
+
+// CollectionsCreateJSONRequestBody defines body for CollectionsCreate for application/json ContentType.
+type CollectionsCreateJSONRequestBody = CollectionCreate
+
+// CollectionsUpdateJSONRequestBody defines body for CollectionsUpdate for application/json ContentType.
+type CollectionsUpdateJSONRequestBody = CollectionUpdate
+
 // BookmarksCreateJSONRequestBody defines body for BookmarksCreate for application/json ContentType.
 type BookmarksCreateJSONRequestBody = BookmarkCreate
+
+// BookmarksUpdateJSONRequestBody defines body for BookmarksUpdate for application/json ContentType.
+type BookmarksUpdateJSONRequestBody = BookmarkUpdate
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -146,10 +210,91 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// CollectionsCreateWithBody request with any body
+	CollectionsCreateWithBody(ctx context.Context, userId CollectionParentKey, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CollectionsCreate(ctx context.Context, userId CollectionParentKey, body CollectionsCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CollectionsRead request
+	CollectionsRead(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CollectionsUpdateWithBody request with any body
+	CollectionsUpdateWithBody(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CollectionsUpdate(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, body CollectionsUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// BookmarksCreateWithBody request with any body
 	BookmarksCreateWithBody(ctx context.Context, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	BookmarksCreate(ctx context.Context, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId, body BookmarksCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// BookmarksRead request
+	BookmarksRead(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// BookmarksUpdateWithBody request with any body
+	BookmarksUpdateWithBody(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	BookmarksUpdate(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) CollectionsCreateWithBody(ctx context.Context, userId CollectionParentKey, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectionsCreateRequestWithBody(c.Server, userId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CollectionsCreate(ctx context.Context, userId CollectionParentKey, body CollectionsCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectionsCreateRequest(c.Server, userId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CollectionsRead(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectionsReadRequest(c.Server, userId, collectionId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CollectionsUpdateWithBody(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectionsUpdateRequestWithBody(c.Server, userId, collectionId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CollectionsUpdate(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, body CollectionsUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectionsUpdateRequest(c.Server, userId, collectionId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) BookmarksCreateWithBody(ctx context.Context, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -174,6 +319,184 @@ func (c *Client) BookmarksCreate(ctx context.Context, userId BookmarkParentKeyUs
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+func (c *Client) BookmarksRead(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBookmarksReadRequest(c.Server, userId, collectionId, bookmarkId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BookmarksUpdateWithBody(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBookmarksUpdateRequestWithBody(c.Server, userId, collectionId, bookmarkId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BookmarksUpdate(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBookmarksUpdateRequest(c.Server, userId, collectionId, bookmarkId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewCollectionsCreateRequest calls the generic CollectionsCreate builder with application/json body
+func NewCollectionsCreateRequest(server string, userId CollectionParentKey, body CollectionsCreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCollectionsCreateRequestWithBody(server, userId, "application/json", bodyReader)
+}
+
+// NewCollectionsCreateRequestWithBody generates requests for CollectionsCreate with any type of body
+func NewCollectionsCreateRequestWithBody(server string, userId CollectionParentKey, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/collections", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCollectionsReadRequest generates requests for CollectionsRead
+func NewCollectionsReadRequest(server string, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "collectionId", runtime.ParamLocationPath, collectionId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/collections/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCollectionsUpdateRequest calls the generic CollectionsUpdate builder with application/json body
+func NewCollectionsUpdateRequest(server string, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, body CollectionsUpdateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCollectionsUpdateRequestWithBody(server, userId, collectionId, "application/json", bodyReader)
+}
+
+// NewCollectionsUpdateRequestWithBody generates requests for CollectionsUpdate with any type of body
+func NewCollectionsUpdateRequestWithBody(server string, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "collectionId", runtime.ParamLocationPath, collectionId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/collections/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewBookmarksCreateRequest calls the generic BookmarksCreate builder with application/json body
@@ -230,6 +553,115 @@ func NewBookmarksCreateRequestWithBody(server string, userId BookmarkParentKeyUs
 	return req, nil
 }
 
+// NewBookmarksReadRequest generates requests for BookmarksRead
+func NewBookmarksReadRequest(server string, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "collectionId", runtime.ParamLocationPath, collectionId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "bookmarkId", runtime.ParamLocationPath, bookmarkId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/collections/%s/bookmarks/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewBookmarksUpdateRequest calls the generic BookmarksUpdate builder with application/json body
+func NewBookmarksUpdateRequest(server string, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewBookmarksUpdateRequestWithBody(server, userId, collectionId, bookmarkId, "application/json", bodyReader)
+}
+
+// NewBookmarksUpdateRequestWithBody generates requests for BookmarksUpdate with any type of body
+func NewBookmarksUpdateRequestWithBody(server string, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "collectionId", runtime.ParamLocationPath, collectionId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "bookmarkId", runtime.ParamLocationPath, bookmarkId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/collections/%s/bookmarks/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -273,10 +705,101 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// CollectionsCreateWithBodyWithResponse request with any body
+	CollectionsCreateWithBodyWithResponse(ctx context.Context, userId CollectionParentKey, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CollectionsCreateResponse, error)
+
+	CollectionsCreateWithResponse(ctx context.Context, userId CollectionParentKey, body CollectionsCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CollectionsCreateResponse, error)
+
+	// CollectionsReadWithResponse request
+	CollectionsReadWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*CollectionsReadResponse, error)
+
+	// CollectionsUpdateWithBodyWithResponse request with any body
+	CollectionsUpdateWithBodyWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CollectionsUpdateResponse, error)
+
+	CollectionsUpdateWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, body CollectionsUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*CollectionsUpdateResponse, error)
+
 	// BookmarksCreateWithBodyWithResponse request with any body
 	BookmarksCreateWithBodyWithResponse(ctx context.Context, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BookmarksCreateResponse, error)
 
 	BookmarksCreateWithResponse(ctx context.Context, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId, body BookmarksCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*BookmarksCreateResponse, error)
+
+	// BookmarksReadWithResponse request
+	BookmarksReadWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, reqEditors ...RequestEditorFn) (*BookmarksReadResponse, error)
+
+	// BookmarksUpdateWithBodyWithResponse request with any body
+	BookmarksUpdateWithBodyWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BookmarksUpdateResponse, error)
+
+	BookmarksUpdateWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*BookmarksUpdateResponse, error)
+}
+
+type CollectionsCreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Collection
+	JSON201      *Collection
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r CollectionsCreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CollectionsCreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CollectionsReadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Collection
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r CollectionsReadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CollectionsReadResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CollectionsUpdateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Collection
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r CollectionsUpdateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CollectionsUpdateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type BookmarksCreateResponse struct {
@@ -303,6 +826,95 @@ func (r BookmarksCreateResponse) StatusCode() int {
 	return 0
 }
 
+type BookmarksReadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Bookmark
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r BookmarksReadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BookmarksReadResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type BookmarksUpdateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Bookmark
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r BookmarksUpdateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BookmarksUpdateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// CollectionsCreateWithBodyWithResponse request with arbitrary body returning *CollectionsCreateResponse
+func (c *ClientWithResponses) CollectionsCreateWithBodyWithResponse(ctx context.Context, userId CollectionParentKey, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CollectionsCreateResponse, error) {
+	rsp, err := c.CollectionsCreateWithBody(ctx, userId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectionsCreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) CollectionsCreateWithResponse(ctx context.Context, userId CollectionParentKey, body CollectionsCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CollectionsCreateResponse, error) {
+	rsp, err := c.CollectionsCreate(ctx, userId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectionsCreateResponse(rsp)
+}
+
+// CollectionsReadWithResponse request returning *CollectionsReadResponse
+func (c *ClientWithResponses) CollectionsReadWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*CollectionsReadResponse, error) {
+	rsp, err := c.CollectionsRead(ctx, userId, collectionId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectionsReadResponse(rsp)
+}
+
+// CollectionsUpdateWithBodyWithResponse request with arbitrary body returning *CollectionsUpdateResponse
+func (c *ClientWithResponses) CollectionsUpdateWithBodyWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CollectionsUpdateResponse, error) {
+	rsp, err := c.CollectionsUpdateWithBody(ctx, userId, collectionId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectionsUpdateResponse(rsp)
+}
+
+func (c *ClientWithResponses) CollectionsUpdateWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, body CollectionsUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*CollectionsUpdateResponse, error) {
+	rsp, err := c.CollectionsUpdate(ctx, userId, collectionId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectionsUpdateResponse(rsp)
+}
+
 // BookmarksCreateWithBodyWithResponse request with arbitrary body returning *BookmarksCreateResponse
 func (c *ClientWithResponses) BookmarksCreateWithBodyWithResponse(ctx context.Context, userId BookmarkParentKeyUserId, collectionId BookmarkParentKeyCollectionId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BookmarksCreateResponse, error) {
 	rsp, err := c.BookmarksCreateWithBody(ctx, userId, collectionId, contentType, body, reqEditors...)
@@ -318,6 +930,138 @@ func (c *ClientWithResponses) BookmarksCreateWithResponse(ctx context.Context, u
 		return nil, err
 	}
 	return ParseBookmarksCreateResponse(rsp)
+}
+
+// BookmarksReadWithResponse request returning *BookmarksReadResponse
+func (c *ClientWithResponses) BookmarksReadWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, reqEditors ...RequestEditorFn) (*BookmarksReadResponse, error) {
+	rsp, err := c.BookmarksRead(ctx, userId, collectionId, bookmarkId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBookmarksReadResponse(rsp)
+}
+
+// BookmarksUpdateWithBodyWithResponse request with arbitrary body returning *BookmarksUpdateResponse
+func (c *ClientWithResponses) BookmarksUpdateWithBodyWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BookmarksUpdateResponse, error) {
+	rsp, err := c.BookmarksUpdateWithBody(ctx, userId, collectionId, bookmarkId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBookmarksUpdateResponse(rsp)
+}
+
+func (c *ClientWithResponses) BookmarksUpdateWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*BookmarksUpdateResponse, error) {
+	rsp, err := c.BookmarksUpdate(ctx, userId, collectionId, bookmarkId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBookmarksUpdateResponse(rsp)
+}
+
+// ParseCollectionsCreateResponse parses an HTTP response from a CollectionsCreateWithResponse call
+func ParseCollectionsCreateResponse(rsp *http.Response) (*CollectionsCreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CollectionsCreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Collection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest Collection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCollectionsReadResponse parses an HTTP response from a CollectionsReadWithResponse call
+func ParseCollectionsReadResponse(rsp *http.Response) (*CollectionsReadResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CollectionsReadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Collection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCollectionsUpdateResponse parses an HTTP response from a CollectionsUpdateWithResponse call
+func ParseCollectionsUpdateResponse(rsp *http.Response) (*CollectionsUpdateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CollectionsUpdateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Collection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseBookmarksCreateResponse parses an HTTP response from a BookmarksCreateWithResponse call
@@ -347,6 +1091,72 @@ func ParseBookmarksCreateResponse(rsp *http.Response) (*BookmarksCreateResponse,
 			return nil, err
 		}
 		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseBookmarksReadResponse parses an HTTP response from a BookmarksReadWithResponse call
+func ParseBookmarksReadResponse(rsp *http.Response) (*BookmarksReadResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BookmarksReadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Bookmark
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseBookmarksUpdateResponse parses an HTTP response from a BookmarksUpdateWithResponse call
+func ParseBookmarksUpdateResponse(rsp *http.Response) (*BookmarksUpdateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BookmarksUpdateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Bookmark
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest Error
