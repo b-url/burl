@@ -75,6 +75,12 @@ type Collection struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 }
 
+// CollectionChildren defines model for CollectionChildren.
+type CollectionChildren struct {
+	Bookmarks   []Bookmark   `json:"bookmarks"`
+	Collections []Collection `json:"collections"`
+}
+
 // CollectionCreate Resource create operation model.
 type CollectionCreate struct {
 	Description *string `json:"description,omitempty"`
@@ -235,6 +241,9 @@ type ClientInterface interface {
 	BookmarksUpdateWithBody(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	BookmarksUpdate(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CollectionsListChildren request
+	CollectionsListChildren(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) CollectionsCreateWithBody(ctx context.Context, userId CollectionParentKey, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -347,6 +356,18 @@ func (c *Client) BookmarksUpdateWithBody(ctx context.Context, userId BookmarkKey
 
 func (c *Client) BookmarksUpdate(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewBookmarksUpdateRequest(c.Server, userId, collectionId, bookmarkId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CollectionsListChildren(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectionsListChildrenRequest(c.Server, userId, collectionId)
 	if err != nil {
 		return nil, err
 	}
@@ -662,6 +683,47 @@ func NewBookmarksUpdateRequestWithBody(server string, userId BookmarkKeyUserId, 
 	return req, nil
 }
 
+// NewCollectionsListChildrenRequest generates requests for CollectionsListChildren
+func NewCollectionsListChildrenRequest(server string, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "collectionId", runtime.ParamLocationPath, collectionId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/collections/%s/children", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -730,6 +792,9 @@ type ClientWithResponsesInterface interface {
 	BookmarksUpdateWithBodyWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BookmarksUpdateResponse, error)
 
 	BookmarksUpdateWithResponse(ctx context.Context, userId BookmarkKeyUserId, collectionId BookmarkKeyCollectionId, bookmarkId BookmarkKeyBookmarkId, body BookmarksUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*BookmarksUpdateResponse, error)
+
+	// CollectionsListChildrenWithResponse request
+	CollectionsListChildrenWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*CollectionsListChildrenResponse, error)
 }
 
 type CollectionsCreateResponse struct {
@@ -872,6 +937,29 @@ func (r BookmarksUpdateResponse) StatusCode() int {
 	return 0
 }
 
+type CollectionsListChildrenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]CollectionChildren
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r CollectionsListChildrenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CollectionsListChildrenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // CollectionsCreateWithBodyWithResponse request with arbitrary body returning *CollectionsCreateResponse
 func (c *ClientWithResponses) CollectionsCreateWithBodyWithResponse(ctx context.Context, userId CollectionParentKey, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CollectionsCreateResponse, error) {
 	rsp, err := c.CollectionsCreateWithBody(ctx, userId, contentType, body, reqEditors...)
@@ -956,6 +1044,15 @@ func (c *ClientWithResponses) BookmarksUpdateWithResponse(ctx context.Context, u
 		return nil, err
 	}
 	return ParseBookmarksUpdateResponse(rsp)
+}
+
+// CollectionsListChildrenWithResponse request returning *CollectionsListChildrenResponse
+func (c *ClientWithResponses) CollectionsListChildrenWithResponse(ctx context.Context, userId CollectionKeyUserId, collectionId CollectionKeyCollectionId, reqEditors ...RequestEditorFn) (*CollectionsListChildrenResponse, error) {
+	rsp, err := c.CollectionsListChildren(ctx, userId, collectionId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectionsListChildrenResponse(rsp)
 }
 
 // ParseCollectionsCreateResponse parses an HTTP response from a CollectionsCreateWithResponse call
@@ -1153,6 +1250,39 @@ func ParseBookmarksUpdateResponse(rsp *http.Response) (*BookmarksUpdateResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Bookmark
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCollectionsListChildrenResponse parses an HTTP response from a CollectionsListChildrenWithResponse call
+func ParseCollectionsListChildrenResponse(rsp *http.Response) (*CollectionsListChildrenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CollectionsListChildrenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []CollectionChildren
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

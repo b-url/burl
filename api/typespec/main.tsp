@@ -19,7 +19,6 @@ enum Versions {
     v1,
 }
 
-
 @resource("users")
 model User {
     @segment("users")
@@ -79,7 +78,6 @@ model Bookmark {
     name: string; 
     
     @key("bookmarkId")
-    @docFromComment
     @visibility("read")
     @doc("System-generated unique identifier for the bookmark.")
     uid: string; 
@@ -115,6 +113,12 @@ interface Bookmarks {
 }
 
 alias CollectionOperations = TypeSpec.Rest.Resource.ResourceOperations<Collection, Error>;
+alias CollectionParams = TypeSpec.Rest.Resource.ResourceParameters<Collection>;
+
+model CollectionChildren {
+    bookmarks: Bookmark[];
+    collections: Collection[];
+}
 
 @autoRoute
 interface Collections {
@@ -126,5 +130,9 @@ interface Collections {
 
     @doc("Update a collection")
     op update is CollectionOperations.update;
+
+    @segment("children")
+    @doc("List all the children of a collection, including bookmarks and sub-collections.")
+    op listChildren(...CollectionParams): CollectionChildren[] | Error;
 }
 
