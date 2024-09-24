@@ -201,6 +201,7 @@ components:
       name: userId
       in: path
       required: true
+      description: System-generated unique identifier for the user.
       schema:
         type: string
     BookmarkParentKey.collectionId:
@@ -214,6 +215,7 @@ components:
       name: userId
       in: path
       required: true
+      description: System-generated unique identifier for the user.
       schema:
         type: string
     CollectionKey.collectionId:
@@ -227,33 +229,33 @@ components:
       name: userId
       in: path
       required: true
+      description: System-generated unique identifier for the user.
       schema:
         type: string
     CollectionParentKey:
       name: userId
       in: path
       required: true
+      description: System-generated unique identifier for the user.
       schema:
         type: string
   schemas:
     Bookmark:
       type: object
       required:
-        - name
-        - uid
+        - id
         - url
         - tags
         - createTime
         - updateTime
       properties:
-        name:
-          type: string
-          description: Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})
-          readOnly: true
-        uid:
+        id:
           type: string
           description: System-generated unique identifier for the bookmark.
           readOnly: true
+        parentId:
+          type: string
+          description: System-generated unique identifier for the parent collection.
         url:
           type: string
         displayName:
@@ -277,6 +279,9 @@ components:
         - url
         - tags
       properties:
+        parentId:
+          type: string
+          description: System-generated unique identifier for the parent collection.
         url:
           type: string
         displayName:
@@ -289,6 +294,9 @@ components:
     BookmarkUpdate:
       type: object
       properties:
+        parentId:
+          type: string
+          description: System-generated unique identifier for the parent collection.
         displayName:
           type: string
         tags:
@@ -299,20 +307,18 @@ components:
     Collection:
       type: object
       required:
-        - name
-        - uid
+        - id
         - displayName
         - createTime
         - updateTime
       properties:
-        name:
-          type: string
-          description: Resource name (e.g., users/{user_id}/collections/{collection_id})
-          readOnly: true
-        uid:
+        id:
           type: string
           description: System-generated unique identifier for the collection.
           readOnly: true
+        parentId:
+          type: string
+          description: System-generated unique identifier for the parent collection.
         parentCollection:
           type: string
           readOnly: true
@@ -347,6 +353,9 @@ components:
       required:
         - displayName
       properties:
+        parentId:
+          type: string
+          description: System-generated unique identifier for the parent collection.
         displayName:
           type: string
         description:
@@ -355,6 +364,9 @@ components:
     CollectionUpdate:
       type: object
       properties:
+        parentId:
+          type: string
+          description: System-generated unique identifier for the parent collection.
         displayName:
           type: string
         description:
@@ -394,17 +406,13 @@ components:
     User:
       type: object
       required:
-        - name
-        - uid
+        - id
         - createTime
         - updateTime
       properties:
-        name:
+        id:
           type: string
-          description: Resource name (e.g., users/{user_id})
-          readOnly: true
-        uid:
-          type: string
+          description: System-generated unique identifier for the user.
           readOnly: true
         createTime:
           type: string

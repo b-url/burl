@@ -21,14 +21,11 @@ enum Versions {
 
 @resource("users")
 model User {
+    @key("userId")
     @segment("users")
     @visibility("read")
-    @doc("Resource name (e.g., users/{user_id})")
-    name: string; 
-    
-    @key("userId")
-    @visibility("read")
-    uid: string; 
+    @doc("System-generated unique identifier for the user.")
+    id: string; 
 
     @visibility("read")
     createTime: utcDateTime; 
@@ -42,15 +39,14 @@ model User {
 @parentResource(User)
 model Collection {
     @segment("collections")
-    @visibility("read")
-    @doc("Resource name (e.g., users/{user_id}/collections/{collection_id})")
-    name: string; 
-    
     @key("collectionId")
-    @docFromComment
     @visibility("read")
     @doc("System-generated unique identifier for the collection.")
-    uid: string; 
+    id: string;
+
+    @visibility("read", "create", "update")
+    @doc("System-generated unique identifier for the parent collection.")
+    parentId?: string;
     
     @visibility("read")
     parentCollection?: string;
@@ -73,14 +69,14 @@ model Collection {
 @parentResource(Collection)
 model Bookmark {
     @segment("bookmarks")
-    @visibility("read")
-    @doc("Resource name (e.g., users/{user_id}/collections/{collection_id}/bookmarks/{bookmark_id})")
-    name: string; 
-    
     @key("bookmarkId")
     @visibility("read")
     @doc("System-generated unique identifier for the bookmark.")
-    uid: string; 
+    id: string;
+    
+    @visibility("read", "create", "update")
+    @doc("System-generated unique identifier for the parent collection.")
+    parentId?: string;
 
     @visibility("read", "create")
     url: string; 
