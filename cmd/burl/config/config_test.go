@@ -15,7 +15,7 @@ func TestDefaultConfigFolder(t *testing.T) {
 			t.Fatalf("os.UserHomeDir() error = %v; want nil", err)
 		}
 
-		expected := filepath.Join(home, ".config", config.ConfigFolder)
+		expected := filepath.Join(home, config.ConfigFolder, config.ConfigFileName)
 		got := config.Filepath()
 
 		if got != expected {
