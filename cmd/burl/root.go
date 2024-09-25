@@ -42,8 +42,15 @@ func NewRootCommand() *RootCommand {
 }
 
 func (c *RootCommand) Execute(_ *cobra.Command, _ []string) error {
+	config, err := config.New()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("API URL:", config.APIURL)
+
 	p := tea.NewProgram(tui.New(), tea.WithAltScreen())
-	_, err := p.Run()
+	_, err = p.Run()
 	return err
 }
 

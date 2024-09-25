@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,8 +19,17 @@ const (
 
 // Config represents the configuration of the burl command.
 type Config struct {
-	APIURL     string `yaml:"apiUrl"`
+	APIURL     string `yaml:"api-url"`
 	DeviceName string `yaml:"deviceName"`
+}
+
+func New() (Config, error) {
+	c := Config{}
+	err := viper.GetViper().Unmarshal(&c, viper.DecoderConfigOption(func(dc *mapstructure.DecoderConfig) {
+		dc.TagName = "yaml"
+	}))
+
+	return c, err
 }
 
 func Filepath() string {
