@@ -1,8 +1,8 @@
 # Automatically generated labeler config for Go modules
 
-app:
+server:
   - changed-files:
-      - any-glob-to-any-file: 'app/**/*'
+      - any-glob-to-any-file: 'cmd/server/**/*'
 
 api:
   - changed-files:
@@ -10,7 +10,7 @@ api:
 
 client:
   - changed-files:
-      - any-glob-to-any-file: 'client/**/*'
+      - any-glob-to-any-file: 'cmd/burl/**/*'
 
 documentation:
   - changed-files:
