@@ -14,6 +14,7 @@ services:
       - "2345:2345"  # For Delve debugger.
     depends_on:
       - postgres
+      - postgres-migration
     volumes:
       - .:/burl  
     working_dir: /burl/cmd/server
@@ -35,3 +36,13 @@ services:
     environment:
       POSTGRES_USER: develop
       POSTGRES_PASSWORD: develop_secret
+
+  postgres-migration:
+    image: arigaio/atlas:0.26.0
+    command: schema apply --env local
+    volumes:
+      - ./schemas:/schemas
+      - ./atlas.hcl:/atlas.hcl
+    depends_on:
+      postgres:
+        condition: service_healthy
