@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	ArgsAPIURL          = "api-url"
-	ArgsAPIURLShortname = "a"
+	ArgsAPIURL = config.APIURLName
 )
 
 type RootCommand struct {
@@ -33,9 +32,11 @@ func NewRootCommand() *RootCommand {
 		RunE: cmd.Execute,
 	}
 
+	cmd.command.AddCommand(NewConfigCommand().command)
+
 	pflags := cmd.command.PersistentFlags()
 
-	pflags.StringP(ArgsAPIURL, ArgsAPIURLShortname, "", "API URL")
+	pflags.String(ArgsAPIURL, "", "API URL")
 	_ = viper.BindPFlag(ArgsAPIURL, pflags.Lookup(ArgsAPIURL))
 
 	return cmd
@@ -48,6 +49,7 @@ func (c *RootCommand) Execute(_ *cobra.Command, _ []string) error {
 	}
 
 	fmt.Println("API URL:", config.APIURL)
+	// TODO: Init client with API URL and inject in tui.New()
 
 	p := tea.NewProgram(tui.New(), tea.WithAltScreen())
 	_, err = p.Run()

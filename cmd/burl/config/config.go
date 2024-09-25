@@ -15,35 +15,51 @@ const (
 	ConfigFileName    = "config.yaml"
 	ConfigFolder      = ".config/burl"
 	EnvironmentPrefix = "BURL"
+
+	APIURLName = "api_url"
 )
 
 // Config represents the configuration of the burl command.
 type Config struct {
-	APIURL     string `yaml:"api-url"`
-	DeviceName string `yaml:"deviceName"`
+	APIURL string `yaml:"api_url"`
 }
 
 func New() (Config, error) {
 	c := Config{}
-	err := viper.GetViper().Unmarshal(&c, viper.DecoderConfigOption(func(dc *mapstructure.DecoderConfig) {
-		dc.TagName = "yaml"
-	}))
+
+	err := viper.GetViper().Unmarshal(&c, viper.DecoderConfigOption(
+		func(dc *mapstructure.DecoderConfig) {
+			dc.TagName = "yaml"
+		}))
 
 	return c, err
 }
 
-func Filepath() string {
+func (c Config) Write() (string, error) {
+	dir := fileDir()
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return "", err
+	}
+
+	path := viper.ConfigFileUsed()
+	return path, viper.WriteConfig()
+}
+
+func fileDir() string {
 	home, err := os.UserHomeDir()
 	cobra.CheckErr(err)
 
-	configPath := filepath.Join(home, ConfigFolder)
+	return filepath.Join(home, ConfigFolder)
+}
+
+func Filepath() string {
+	configPath := fileDir()
 	burlConfigPath := filepath.Join(configPath, ConfigFileName)
 
 	return burlConfigPath
 }
 
 func Init() {
-	fmt.Println("Initializing config")
 	configFile := Filepath()
 
 	viper.SetConfigType("yaml")
@@ -55,6 +71,7 @@ func Init() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
+		// TODO: use debug logger and make log level configurable.
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }
