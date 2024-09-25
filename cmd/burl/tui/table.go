@@ -8,8 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var baseStyle = lipgloss.NewStyle().
-	BorderForeground(lipgloss.Color("240"))
+var baseStyle = lipgloss.NewStyle().BorderForeground(lipgloss.Color("240"))
 
 type Table struct {
 	width int

@@ -25,7 +25,6 @@ func NewStatusBar(initCollection string) *StatusBar {
 	return &StatusBar{currentCollection: initCollection, version: "v0.0.1-alpha"} // TODO: get version from somewhere
 }
 
-// Update updates the footer.
 func (f *StatusBar) Update(collection string) {
 	f.currentCollection = collection
 }
@@ -34,7 +33,6 @@ func (f *StatusBar) SetSize(width int) {
 	f.width = width
 }
 
-// View returns the footer view.
 func (f *StatusBar) View() string {
 	width := lipgloss.Width
 
