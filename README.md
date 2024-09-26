@@ -31,7 +31,7 @@ For migrations we use [atlas](https://atlasgo.io/). Here follow some commands to
 Create a new migration:
 
 ```bash
-atlas migrate new name
+atlas migrate new <name>
 ```
 
 After adding a migration we need a new hash.
