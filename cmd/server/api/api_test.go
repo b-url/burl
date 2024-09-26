@@ -6,22 +6,12 @@ import (
 	"testing"
 
 	"github.com/b-url/burl/cmd/server/api"
-	"github.com/google/go-cmp/cmp"
 )
-
-func TestNewServer(t *testing.T) {
-	t.Run("NewServer returns a new Server", func(t *testing.T) {
-		expected := api.Server{}
-		if diff := cmp.Diff(api.NewServer(), expected); diff != "" {
-			t.Errorf("NewServer() mismatch (-want +got):\n%s", diff)
-		}
-	})
-}
 
 func TestServer_BookmarksCreate(t *testing.T) {
 	t.Run("BookmarksCreate writes a response", func(t *testing.T) {
 		// Create a new Server instance
-		s := api.NewServer()
+		s := api.NewServer(nil)
 
 		// Create a new HTTP request
 		req, err := http.NewRequest(http.MethodPost, "/bookmarks", nil)

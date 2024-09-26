@@ -4,12 +4,15 @@ import (
 	api "github.com/b-url/burl/api/v1"
 )
 
-var _ api.ServerInterface = Server{}
+var _ api.ServerInterface = &Server{}
 
-// Server implements v1.ServerInterface.
-type Server struct{}
+type Server struct {
+	bookmarker Bookmarker
+}
 
 // NewServer returns a new Server.
-func NewServer() Server {
-	return Server{}
+func NewServer(b Bookmarker) *Server {
+	return &Server{
+		bookmarker: b,
+	}
 }

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s Server) CollectionsCreate(
+func (s *Server) CollectionsCreate(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,
@@ -14,7 +14,7 @@ func (s Server) CollectionsCreate(
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) CollectionsRead(
+func (s *Server) CollectionsRead(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,
@@ -24,7 +24,7 @@ func (s Server) CollectionsRead(
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) CollectionsUpdate(
+func (s *Server) CollectionsUpdate(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,
@@ -34,7 +34,7 @@ func (s Server) CollectionsUpdate(
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) CollectionsListChildren(
+func (s *Server) CollectionsListChildren(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,

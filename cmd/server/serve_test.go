@@ -30,7 +30,7 @@ func TestServe(t *testing.T) {
 		// Run the server in a separate goroutine to simulate actual use
 		errChan := make(chan error, 1)
 		go func() {
-			errChan <- Serve(ctx, c, apiimpl.NewServer())
+			errChan <- Serve(ctx, c, apiimpl.NewServer(nil))
 		}()
 
 		// Give the server some time to start
@@ -68,7 +68,7 @@ func TestServe(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
-		err := Serve(ctx, c, apiimpl.NewServer())
+		err := Serve(ctx, c, apiimpl.NewServer(nil))
 		if err == nil {
 			t.Error("Serve() error = nil; want an error")
 		}

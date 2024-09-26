@@ -28,7 +28,7 @@ func NewServeCMD() *cobra.Command {
 			// Create a context that listens for the interrupt signal.
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
-			return Serve(ctx, config.New(), apiimpl.NewServer())
+			return Serve(ctx, config.New(), apiimpl.NewServer(nil))
 		},
 	}
 }

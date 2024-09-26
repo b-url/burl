@@ -1,12 +1,18 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/b-url/burl/cmd/server/bookmark"
 )
 
-// BookmarksCreate creates a new bookmark and returns it.
-func (s Server) BookmarksCreate(
+type Bookmarker interface {
+	CreateBookmark(ctx context.Context, b *bookmark.Bookmark) (*bookmark.Bookmark, error)
+}
+
+func (s *Server) BookmarksCreate(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,
@@ -19,8 +25,7 @@ func (s Server) BookmarksCreate(
 	}
 }
 
-// BookmarksRead returns a bookmark.
-func (s Server) BookmarksRead(
+func (s *Server) BookmarksRead(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,
@@ -31,8 +36,7 @@ func (s Server) BookmarksRead(
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// BookmarksUpdate updates a bookmark.
-func (s Server) BookmarksUpdate(
+func (s *Server) BookmarksUpdate(
 	w http.ResponseWriter,
 	_ *http.Request,
 	userID string,
