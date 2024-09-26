@@ -3,9 +3,9 @@ package main
 import "os"
 
 func main() {
-	rootCmd := NewRootCMD()
+	rootCmd := NewRootCommand()
 
-	if err := rootCmd.Execute(); err != nil {
+	if err := rootCmd.command.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
