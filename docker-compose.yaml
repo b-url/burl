@@ -13,8 +13,10 @@ services:
       - "8080:8080" # For application.
       - "2345:2345" # For Delve debugger.
     depends_on:
-      - postgres
-      - postgres-migration
+      postgres:
+        condition: service_healthy
+      postgres-migration:
+        condition: service_completed_successfully
     volumes:
       - .:/burl
     working_dir: /burl/cmd/server
