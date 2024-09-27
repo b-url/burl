@@ -82,7 +82,7 @@ model Bookmark {
     url: string; 
 
     @visibility("read", "create", "update")
-    displayName?: string; 
+    title: string; 
 
     @visibility("read", "create", "update")
     tags: string[];

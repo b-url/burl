@@ -245,6 +245,7 @@ components:
       required:
         - id
         - url
+        - title
         - tags
         - createTime
         - updateTime
@@ -258,7 +259,7 @@ components:
           description: System-generated unique identifier for the parent collection.
         url:
           type: string
-        displayName:
+        title:
           type: string
         tags:
           type: array
@@ -277,6 +278,7 @@ components:
       type: object
       required:
         - url
+        - title
         - tags
       properties:
         parentId:
@@ -284,7 +286,7 @@ components:
           description: System-generated unique identifier for the parent collection.
         url:
           type: string
-        displayName:
+        title:
           type: string
         tags:
           type: array
@@ -297,7 +299,7 @@ components:
         parentId:
           type: string
           description: System-generated unique identifier for the parent collection.
-        displayName:
+        title:
           type: string
         tags:
           type: array

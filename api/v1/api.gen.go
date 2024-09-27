@@ -30,8 +30,7 @@ const (
 
 // Bookmark Bookmark is a resource that represents a saved URL.
 type Bookmark struct {
-	CreateTime  *time.Time `json:"createTime,omitempty"`
-	DisplayName *string    `json:"displayName,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty"`
 
 	// Id System-generated unique identifier for the bookmark.
 	Id *string `json:"id,omitempty"`
@@ -39,27 +38,26 @@ type Bookmark struct {
 	// ParentId System-generated unique identifier for the parent collection.
 	ParentId   *string    `json:"parentId,omitempty"`
 	Tags       []string   `json:"tags"`
+	Title      string     `json:"title"`
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	Url        string     `json:"url"`
 }
 
 // BookmarkCreate Resource create operation model.
 type BookmarkCreate struct {
-	DisplayName *string `json:"displayName,omitempty"`
-
 	// ParentId System-generated unique identifier for the parent collection.
 	ParentId *string  `json:"parentId,omitempty"`
 	Tags     []string `json:"tags"`
+	Title    string   `json:"title"`
 	Url      string   `json:"url"`
 }
 
 // BookmarkUpdate Resource create or update operation model.
 type BookmarkUpdate struct {
-	DisplayName *string `json:"displayName,omitempty"`
-
 	// ParentId System-generated unique identifier for the parent collection.
 	ParentId *string   `json:"parentId,omitempty"`
 	Tags     *[]string `json:"tags,omitempty"`
+	Title    *string   `json:"title,omitempty"`
 }
 
 // Collection defines model for Collection.
