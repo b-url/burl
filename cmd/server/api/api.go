@@ -7,12 +7,12 @@ import (
 var _ api.ServerInterface = &Server{}
 
 type Server struct {
-	bookmarker Bookmarker
+	Bookmarker Bookmarker
 }
 
 // NewServer returns a new Server.
 func NewServer(b Bookmarker) *Server {
 	return &Server{
-		bookmarker: b,
+		Bookmarker: b,
 	}
 }

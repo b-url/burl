@@ -31,7 +31,7 @@ const (
 
 // Bookmark Bookmark is a resource that represents a saved URL.
 type Bookmark struct {
-	CreateTime time.Time `json:"createTime"`
+	CreateTime *time.Time `json:"createTime,omitempty"`
 
 	// Id System-generated unique identifier for the bookmark.
 	Id uuid.UUID `json:"id"`
@@ -40,36 +40,26 @@ type Bookmark struct {
 	ParentId   *uuid.UUID `json:"parentId,omitempty"`
 	Tags       []string   `json:"tags"`
 	Title      string     `json:"title"`
-	UpdateTime time.Time  `json:"updateTime"`
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	Url        string     `json:"url"`
 }
 
 // BookmarkCreate Resource create operation model.
 type BookmarkCreate struct {
-	CreateTime time.Time `json:"createTime"`
-
-	// ParentId System-generated unique identifier for the parent collection.
-	ParentId   *uuid.UUID `json:"parentId,omitempty"`
-	Tags       []string   `json:"tags"`
-	Title      string     `json:"title"`
-	UpdateTime time.Time  `json:"updateTime"`
-	Url        string     `json:"url"`
+	Tags  []string `json:"tags"`
+	Title string   `json:"title"`
+	Url   string   `json:"url"`
 }
 
 // BookmarkUpdate Resource create or update operation model.
 type BookmarkUpdate struct {
-	CreateTime *time.Time `json:"createTime,omitempty"`
-
-	// ParentId System-generated unique identifier for the parent collection.
-	ParentId   *uuid.UUID `json:"parentId,omitempty"`
-	Tags       *[]string  `json:"tags,omitempty"`
-	Title      *string    `json:"title,omitempty"`
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	Tags  *[]string `json:"tags,omitempty"`
+	Title *string   `json:"title,omitempty"`
 }
 
 // Collection defines model for Collection.
 type Collection struct {
-	CreateTime time.Time `json:"createTime"`
+	CreateTime *time.Time `json:"createTime,omitempty"`
 
 	// Id System-generated unique identifier for the collection.
 	Id   *uuid.UUID `json:"id,omitempty"`
@@ -77,7 +67,7 @@ type Collection struct {
 
 	// ParentId System-generated unique identifier for the parent collection.
 	ParentId   *uuid.UUID `json:"parentId,omitempty"`
-	UpdateTime time.Time  `json:"updateTime"`
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
 }
 
 // CollectionChildren defines model for CollectionChildren.
@@ -88,22 +78,18 @@ type CollectionChildren struct {
 
 // CollectionCreate Resource create operation model.
 type CollectionCreate struct {
-	CreateTime time.Time `json:"createTime"`
-	Name       string    `json:"name"`
+	Name string `json:"name"`
 
 	// ParentId System-generated unique identifier for the parent collection.
-	ParentId   *uuid.UUID `json:"parentId,omitempty"`
-	UpdateTime time.Time  `json:"updateTime"`
+	ParentId *uuid.UUID `json:"parentId,omitempty"`
 }
 
 // CollectionUpdate Resource create or update operation model.
 type CollectionUpdate struct {
-	CreateTime *time.Time `json:"createTime,omitempty"`
-	Name       *string    `json:"name,omitempty"`
+	Name *string `json:"name,omitempty"`
 
 	// ParentId System-generated unique identifier for the parent collection.
-	ParentId   *uuid.UUID `json:"parentId,omitempty"`
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	ParentId *uuid.UUID `json:"parentId,omitempty"`
 }
 
 // Error Error is the response model when an API call is unsuccessful.

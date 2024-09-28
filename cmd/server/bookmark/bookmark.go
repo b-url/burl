@@ -5,20 +5,21 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Bookmark represents a saved URL with additional metadata.
 // A bookmark can optionally be associated with a collection and a user.
 // If the bookmark does not belong to a collection, it implies that it is a top-level bookmark.
 type Bookmark struct {
-	ID           *int64
-	CollectionID int64
-	UserID       int64
+	ID           uuid.UUID
+	CollectionID uuid.UUID
+	UserID       uuid.UUID
 	URL          string
 	Title        string
-	Description  string
-	CreateTime   time.Time
-	UpdateTime   time.Time
+	CreateTime   *time.Time
+	UpdateTime   *time.Time
 }
 
 // Bookmarker is responsible for bookmark-related operations.
@@ -31,15 +32,36 @@ func NewBookmarker(repository *Repository) *Bookmarker {
 	return &Bookmarker{repository: repository}
 }
 
+type CreateBookmarkParams struct {
+	URL          string
+	Title        string
+	CollectionID uuid.UUID
+	UserID       uuid.UUID
+	Tags         []string
+}
+
+// TODO: Handle tag upsert.
 // CreateBookmark creates a new bookmark.
-func (b *Bookmarker) CreateBookmark(ctx context.Context, bookmark *Bookmark) (*Bookmark, error) {
-	if bookmark == nil {
+func (b *Bookmarker) CreateBookmark(ctx context.Context, params *CreateBookmarkParams) (*Bookmark, error) {
+	if params == nil {
 		return nil, ErrBookmarkRequired
 	}
 
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	bookmark := &Bookmark{
+		ID:           id,
+		CollectionID: params.CollectionID,
+		URL:          params.URL,
+		Title:        params.Title,
+		UserID:       params.UserID,
+	}
+
 	var createdBookmark *Bookmark
-	if err := b.repository.Transactionally(ctx, func(tx *sql.Tx) error {
-		var err error
+	if err = b.repository.Transactionally(ctx, func(tx *sql.Tx) error {
 		createdBookmark, err = b.repository.CreateBookmark(ctx, tx, bookmark)
 		if err != nil {
 			return err

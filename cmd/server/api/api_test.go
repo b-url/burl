@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/b-url/burl/cmd/server/api"
+	"github.com/google/uuid"
 )
 
 func TestServer_BookmarksCreate(t *testing.T) {
@@ -23,7 +24,8 @@ func TestServer_BookmarksCreate(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Call the BookmarksCreate method
-		s.BookmarksCreate(rr, req, "user123", "collection456")
+		s.BookmarksCreate(rr, req,
+			uuid.MustParse("00000000-0000-0000-0000-000000000000"), uuid.MustParse("00000000-0000-0000-0000-000000000000"))
 
 		// Check the status code
 		if status := rr.Code; status != http.StatusOK {

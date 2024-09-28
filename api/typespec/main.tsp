@@ -29,7 +29,9 @@ model User {
     @visibility("read")
     id: string; 
 
-    createTime: utcDateTime; 
+    @visibility("read")
+    createTime: utcDateTime;
+    @visibility("read")
     updateTime: utcDateTime;
 }
 
@@ -54,7 +56,9 @@ model Collection {
     @visibility("read", "create", "update")
     name: string;
 
+    @visibility("read")
     createTime: utcDateTime; 
+    @visibility("read")
     updateTime: utcDateTime;
 }
 
@@ -74,7 +78,7 @@ model Bookmark {
     @doc("System-generated unique identifier for the parent collection.")
     @encode("uuid", string)
     @TypeSpec.OpenAPI.extension("x-go-type", "uuid.UUID")
-    @visibility("read", "create", "update")
+    @visibility("read")
     parentId?: string;
 
     @visibility("read", "create")
@@ -86,7 +90,9 @@ model Bookmark {
     @visibility("read", "create", "update")
     tags: string[];
 
+    @visibility("read")
     createTime: utcDateTime; 
+    @visibility("read")
     updateTime: utcDateTime;
 }
 

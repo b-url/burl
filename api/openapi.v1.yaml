@@ -284,6 +284,7 @@ components:
           format: uuid
           description: System-generated unique identifier for the parent collection.
           x-go-type: uuid.UUID
+          readOnly: true
         url:
           type: string
         title:
@@ -295,9 +296,11 @@ components:
         createTime:
           type: string
           format: date-time
+          readOnly: true
         updateTime:
           type: string
           format: date-time
+          readOnly: true
       description: Bookmark is a resource that represents a saved URL.
     BookmarkCreate:
       type: object
@@ -305,14 +308,7 @@ components:
         - url
         - title
         - tags
-        - createTime
-        - updateTime
       properties:
-        parentId:
-          type: string
-          format: uuid
-          description: System-generated unique identifier for the parent collection.
-          x-go-type: uuid.UUID
         url:
           type: string
         title:
@@ -321,33 +317,16 @@ components:
           type: array
           items:
             type: string
-        createTime:
-          type: string
-          format: date-time
-        updateTime:
-          type: string
-          format: date-time
       description: Resource create operation model.
     BookmarkUpdate:
       type: object
       properties:
-        parentId:
-          type: string
-          format: uuid
-          description: System-generated unique identifier for the parent collection.
-          x-go-type: uuid.UUID
         title:
           type: string
         tags:
           type: array
           items:
             type: string
-        createTime:
-          type: string
-          format: date-time
-        updateTime:
-          type: string
-          format: date-time
       description: Resource create or update operation model.
     Collection:
       type: object
@@ -373,9 +352,11 @@ components:
         createTime:
           type: string
           format: date-time
+          readOnly: true
         updateTime:
           type: string
           format: date-time
+          readOnly: true
     CollectionChildren:
       type: object
       required:
@@ -394,8 +375,6 @@ components:
       type: object
       required:
         - name
-        - createTime
-        - updateTime
       properties:
         parentId:
           type: string
@@ -404,12 +383,6 @@ components:
           x-go-type: uuid.UUID
         name:
           type: string
-        createTime:
-          type: string
-          format: date-time
-        updateTime:
-          type: string
-          format: date-time
       description: Resource create operation model.
     CollectionUpdate:
       type: object
@@ -421,12 +394,6 @@ components:
           x-go-type: uuid.UUID
         name:
           type: string
-        createTime:
-          type: string
-          format: date-time
-        updateTime:
-          type: string
-          format: date-time
       description: Resource create or update operation model.
     Error:
       type: object
@@ -475,9 +442,11 @@ components:
         createTime:
           type: string
           format: date-time
+          readOnly: true
         updateTime:
           type: string
           format: date-time
+          readOnly: true
     Versions:
       type: string
       enum:
