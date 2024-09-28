@@ -190,6 +190,9 @@ components:
       description: System-generated unique identifier for the bookmark.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     BookmarkKey.collectionId:
       name: collectionId
       in: path
@@ -197,6 +200,9 @@ components:
       description: System-generated unique identifier for the collection.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     BookmarkKey.userId:
       name: userId
       in: path
@@ -204,6 +210,9 @@ components:
       description: System-generated unique identifier for the user.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     BookmarkParentKey.collectionId:
       name: collectionId
       in: path
@@ -211,6 +220,9 @@ components:
       description: System-generated unique identifier for the collection.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     BookmarkParentKey.userId:
       name: userId
       in: path
@@ -218,6 +230,9 @@ components:
       description: System-generated unique identifier for the user.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     CollectionKey.collectionId:
       name: collectionId
       in: path
@@ -225,6 +240,9 @@ components:
       description: System-generated unique identifier for the collection.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     CollectionKey.userId:
       name: userId
       in: path
@@ -232,6 +250,9 @@ components:
       description: System-generated unique identifier for the user.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
     CollectionParentKey:
       name: userId
       in: path
@@ -239,6 +260,9 @@ components:
       description: System-generated unique identifier for the user.
       schema:
         type: string
+        x-go-type: uuid.UUID
+        format: uuid
+      x-go-type: uuid.UUID
   schemas:
     Bookmark:
       type: object
@@ -252,11 +276,14 @@ components:
       properties:
         id:
           type: string
+          format: uuid
           description: System-generated unique identifier for the bookmark.
-          readOnly: true
+          x-go-type: uuid.UUID
         parentId:
           type: string
+          format: uuid
           description: System-generated unique identifier for the parent collection.
+          x-go-type: uuid.UUID
         url:
           type: string
         title:
@@ -268,11 +295,9 @@ components:
         createTime:
           type: string
           format: date-time
-          readOnly: true
         updateTime:
           type: string
           format: date-time
-          readOnly: true
       description: Bookmark is a resource that represents a saved URL.
     BookmarkCreate:
       type: object
@@ -280,10 +305,14 @@ components:
         - url
         - title
         - tags
+        - createTime
+        - updateTime
       properties:
         parentId:
           type: string
+          format: uuid
           description: System-generated unique identifier for the parent collection.
+          x-go-type: uuid.UUID
         url:
           type: string
         title:
@@ -292,50 +321,61 @@ components:
           type: array
           items:
             type: string
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
       description: Resource create operation model.
     BookmarkUpdate:
       type: object
       properties:
         parentId:
           type: string
+          format: uuid
           description: System-generated unique identifier for the parent collection.
+          x-go-type: uuid.UUID
         title:
           type: string
         tags:
           type: array
           items:
             type: string
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
       description: Resource create or update operation model.
     Collection:
       type: object
       required:
         - id
-        - displayName
+        - name
         - createTime
         - updateTime
       properties:
         id:
           type: string
+          format: uuid
           description: System-generated unique identifier for the collection.
+          x-go-type: uuid.UUID
           readOnly: true
         parentId:
           type: string
+          format: uuid
           description: System-generated unique identifier for the parent collection.
-        parentCollection:
-          type: string
-          readOnly: true
-        displayName:
-          type: string
-        description:
+          x-go-type: uuid.UUID
+        name:
           type: string
         createTime:
           type: string
           format: date-time
-          readOnly: true
         updateTime:
           type: string
           format: date-time
-          readOnly: true
     CollectionChildren:
       type: object
       required:
@@ -353,26 +393,40 @@ components:
     CollectionCreate:
       type: object
       required:
-        - displayName
+        - name
+        - createTime
+        - updateTime
       properties:
         parentId:
           type: string
+          format: uuid
           description: System-generated unique identifier for the parent collection.
-        displayName:
+          x-go-type: uuid.UUID
+        name:
           type: string
-        description:
+        createTime:
           type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
       description: Resource create operation model.
     CollectionUpdate:
       type: object
       properties:
         parentId:
           type: string
+          format: uuid
           description: System-generated unique identifier for the parent collection.
-        displayName:
+          x-go-type: uuid.UUID
+        name:
           type: string
-        description:
+        createTime:
           type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
       description: Resource create or update operation model.
     Error:
       type: object
@@ -414,16 +468,16 @@ components:
       properties:
         id:
           type: string
+          format: uuid
           description: System-generated unique identifier for the user.
+          x-go-type: uuid.UUID
           readOnly: true
         createTime:
           type: string
           format: date-time
-          readOnly: true
         updateTime:
           type: string
           format: date-time
-          readOnly: true
     Versions:
       type: string
       enum:
