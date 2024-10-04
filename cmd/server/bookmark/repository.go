@@ -48,7 +48,7 @@ func (r *SQLRepository) Transactionally(ctx context.Context, f func(tx *sql.Tx) 
 }
 
 // CreateBookmark creates a new bookmark.
-func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark *Bookmark) (*Bookmark, error) {
+func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark Bookmark) (Bookmark, error) {
 	query := `
 		INSERT INTO bookmarks (id, collection_id, user_id, url, title)
 		VALUES ($1, $2, $3, $4, $5)
@@ -66,7 +66,7 @@ func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark
 
 	err := row.Scan(&bookmark.ID, &bookmark.CreateTime, &bookmark.UpdateTime)
 	if err != nil {
-		return nil, err
+		return Bookmark{}, err
 	}
 
 	return bookmark, nil

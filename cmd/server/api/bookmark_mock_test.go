@@ -20,7 +20,7 @@ var _ bookmark.Repository = &RepositoryMock{}
 //
 //		// make and configure a mocked bookmark.Repository
 //		mockedRepository := &RepositoryMock{
-//			CreateBookmarkFunc: func(ctx context.Context, tx *sql.Tx, bookmarkMoqParam *bookmark.Bookmark) (*bookmark.Bookmark, error) {
+//			CreateBookmarkFunc: func(ctx context.Context, tx *sql.Tx, bookmarkMoqParam bookmark.Bookmark) (bookmark.Bookmark, error) {
 //				panic("mock out the CreateBookmark method")
 //			},
 //			TransactionallyFunc: func(ctx context.Context, f func(tx *sql.Tx) error) error {
@@ -34,7 +34,7 @@ var _ bookmark.Repository = &RepositoryMock{}
 //	}
 type RepositoryMock struct {
 	// CreateBookmarkFunc mocks the CreateBookmark method.
-	CreateBookmarkFunc func(ctx context.Context, tx *sql.Tx, bookmarkMoqParam *bookmark.Bookmark) (*bookmark.Bookmark, error)
+	CreateBookmarkFunc func(ctx context.Context, tx *sql.Tx, bookmarkMoqParam bookmark.Bookmark) (bookmark.Bookmark, error)
 
 	// TransactionallyFunc mocks the Transactionally method.
 	TransactionallyFunc func(ctx context.Context, f func(tx *sql.Tx) error) error
@@ -48,7 +48,7 @@ type RepositoryMock struct {
 			// Tx is the tx argument value.
 			Tx *sql.Tx
 			// BookmarkMoqParam is the bookmarkMoqParam argument value.
-			BookmarkMoqParam *bookmark.Bookmark
+			BookmarkMoqParam bookmark.Bookmark
 		}
 		// Transactionally holds details about calls to the Transactionally method.
 		Transactionally []struct {
@@ -63,11 +63,11 @@ type RepositoryMock struct {
 }
 
 // CreateBookmark calls CreateBookmarkFunc.
-func (mock *RepositoryMock) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmarkMoqParam *bookmark.Bookmark) (*bookmark.Bookmark, error) {
+func (mock *RepositoryMock) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmarkMoqParam bookmark.Bookmark) (bookmark.Bookmark, error) {
 	callInfo := struct {
 		Ctx              context.Context
 		Tx               *sql.Tx
-		BookmarkMoqParam *bookmark.Bookmark
+		BookmarkMoqParam bookmark.Bookmark
 	}{
 		Ctx:              ctx,
 		Tx:               tx,
@@ -78,7 +78,7 @@ func (mock *RepositoryMock) CreateBookmark(ctx context.Context, tx *sql.Tx, book
 	mock.lockCreateBookmark.Unlock()
 	if mock.CreateBookmarkFunc == nil {
 		var (
-			bookmarkOut *bookmark.Bookmark
+			bookmarkOut bookmark.Bookmark
 			errOut      error
 		)
 		return bookmarkOut, errOut
@@ -93,12 +93,12 @@ func (mock *RepositoryMock) CreateBookmark(ctx context.Context, tx *sql.Tx, book
 func (mock *RepositoryMock) CreateBookmarkCalls() []struct {
 	Ctx              context.Context
 	Tx               *sql.Tx
-	BookmarkMoqParam *bookmark.Bookmark
+	BookmarkMoqParam bookmark.Bookmark
 } {
 	var calls []struct {
 		Ctx              context.Context
 		Tx               *sql.Tx
-		BookmarkMoqParam *bookmark.Bookmark
+		BookmarkMoqParam bookmark.Bookmark
 	}
 	mock.lockCreateBookmark.RLock()
 	calls = mock.calls.CreateBookmark

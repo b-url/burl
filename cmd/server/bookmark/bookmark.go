@@ -30,7 +30,7 @@ type Bookmarker struct {
 
 type Repository interface {
 	Transactionally(ctx context.Context, f func(tx *sql.Tx) error) (err error)
-	CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark *Bookmark) (*Bookmark, error)
+	CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark Bookmark) (Bookmark, error)
 }
 
 func NewBookmarker(repository Repository) *Bookmarker {
@@ -47,25 +47,21 @@ type CreateBookmarkParams struct {
 
 // TODO: Handle tag upsert.
 // CreateBookmark creates a new bookmark.
-func (b *Bookmarker) CreateBookmark(ctx context.Context, params *CreateBookmarkParams) (*Bookmark, error) {
-	if params == nil {
-		return nil, ErrBookmarkRequired
-	}
+func (b *Bookmarker) CreateBookmark(ctx context.Context, params CreateBookmarkParams) (Bookmark, error) {
+	createdBookmark := Bookmark{}
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, err
+		return createdBookmark, err
 	}
 
-	bookmark := &Bookmark{
+	bookmark := Bookmark{
 		ID:           id,
 		CollectionID: params.CollectionID,
 		URL:          params.URL,
 		Title:        params.Title,
 		UserID:       params.UserID,
 	}
-
-	var createdBookmark *Bookmark
 	if err = b.repository.Transactionally(ctx, func(tx *sql.Tx) error {
 		createdBookmark, err = b.repository.CreateBookmark(ctx, tx, bookmark)
 		if err != nil {
@@ -74,7 +70,7 @@ func (b *Bookmarker) CreateBookmark(ctx context.Context, params *CreateBookmarkP
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return createdBookmark, err
 	}
 
 	return createdBookmark, nil

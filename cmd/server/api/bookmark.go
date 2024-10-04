@@ -13,7 +13,7 @@ import (
 )
 
 type Bookmarker interface {
-	CreateBookmark(ctx context.Context, b *bookmark.CreateBookmarkParams) (*bookmark.Bookmark, error)
+	CreateBookmark(ctx context.Context, b bookmark.CreateBookmarkParams) (bookmark.Bookmark, error)
 }
 
 // TODO: http.Error should be replaced by the error model.
@@ -42,7 +42,7 @@ func (s *Server) BookmarksCreate(
 		return
 	}
 
-	params := &bookmark.CreateBookmarkParams{
+	params := bookmark.CreateBookmarkParams{
 		URL:          request.Url,
 		Title:        request.Title,
 		Tags:         request.Tags,

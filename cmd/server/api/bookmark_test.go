@@ -25,7 +25,7 @@ func TestServer_BookmarksCreate(t *testing.T) {
 
 		// Arrange.
 		repository := &RepositoryMock{
-			CreateBookmarkFunc: func(_ context.Context, _ *sql.Tx, b *bookmark.Bookmark) (*bookmark.Bookmark, error) {
+			CreateBookmarkFunc: func(_ context.Context, _ *sql.Tx, b bookmark.Bookmark) (bookmark.Bookmark, error) {
 				return b, nil
 			},
 			TransactionallyFunc: func(_ context.Context, f func(tx *sql.Tx) error) error {
