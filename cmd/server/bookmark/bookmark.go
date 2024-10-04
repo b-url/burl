@@ -25,10 +25,15 @@ type Bookmark struct {
 // Bookmarker is responsible for bookmark-related operations.
 // It encapsulates the bookmark repository and perform related side effects.
 type Bookmarker struct {
-	repository *Repository
+	repository Repository
 }
 
-func NewBookmarker(repository *Repository) *Bookmarker {
+type Repository interface {
+	Transactionally(ctx context.Context, f func(tx *sql.Tx) error) (err error)
+	CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark *Bookmark) (*Bookmark, error)
+}
+
+func NewBookmarker(repository Repository) *Bookmarker {
 	return &Bookmarker{repository: repository}
 }
 
