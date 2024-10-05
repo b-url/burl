@@ -12,7 +12,9 @@ import (
 
 	api "github.com/b-url/burl/api/v1"
 	apiimpl "github.com/b-url/burl/cmd/server/api"
+	"github.com/b-url/burl/cmd/server/bookmark"
 	"github.com/b-url/burl/cmd/server/config"
+	"github.com/b-url/burl/cmd/server/database"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +30,24 @@ func NewServeCMD() *cobra.Command {
 			// Create a context that listens for the interrupt signal.
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
-			return Serve(ctx, config.New(), apiimpl.NewServer())
+
+			cfg := config.New()
+			dsn, err := cfg.DBURL()
+			if err != nil {
+				return err
+			}
+
+			db, err := database.NewConnection(database.Config{
+				DSN: dsn,
+			})
+			if err != nil {
+				return err
+			}
+
+			repo := bookmark.NewRepository(db)
+			b := bookmark.NewBookmarker(repo)
+
+			return Serve(ctx, config.New(), apiimpl.NewServer(b))
 		},
 	}
 }

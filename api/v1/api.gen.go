@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -30,50 +31,42 @@ const (
 
 // Bookmark Bookmark is a resource that represents a saved URL.
 type Bookmark struct {
-	CreateTime  *time.Time `json:"createTime,omitempty"`
-	DisplayName *string    `json:"displayName,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty"`
 
 	// Id System-generated unique identifier for the bookmark.
-	Id *string `json:"id,omitempty"`
+	Id uuid.UUID `json:"id"`
 
 	// ParentId System-generated unique identifier for the parent collection.
-	ParentId   *string    `json:"parentId,omitempty"`
+	ParentId   *uuid.UUID `json:"parentId,omitempty"`
 	Tags       []string   `json:"tags"`
+	Title      string     `json:"title"`
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	Url        string     `json:"url"`
 }
 
 // BookmarkCreate Resource create operation model.
 type BookmarkCreate struct {
-	DisplayName *string `json:"displayName,omitempty"`
-
-	// ParentId System-generated unique identifier for the parent collection.
-	ParentId *string  `json:"parentId,omitempty"`
-	Tags     []string `json:"tags"`
-	Url      string   `json:"url"`
+	Tags  []string `json:"tags"`
+	Title string   `json:"title"`
+	Url   string   `json:"url"`
 }
 
 // BookmarkUpdate Resource create or update operation model.
 type BookmarkUpdate struct {
-	DisplayName *string `json:"displayName,omitempty"`
-
-	// ParentId System-generated unique identifier for the parent collection.
-	ParentId *string   `json:"parentId,omitempty"`
-	Tags     *[]string `json:"tags,omitempty"`
+	Tags  *[]string `json:"tags,omitempty"`
+	Title *string   `json:"title,omitempty"`
 }
 
 // Collection defines model for Collection.
 type Collection struct {
-	CreateTime  *time.Time `json:"createTime,omitempty"`
-	Description *string    `json:"description,omitempty"`
-	DisplayName string     `json:"displayName"`
+	CreateTime *time.Time `json:"createTime,omitempty"`
 
 	// Id System-generated unique identifier for the collection.
-	Id               *string `json:"id,omitempty"`
-	ParentCollection *string `json:"parentCollection,omitempty"`
+	Id   *uuid.UUID `json:"id,omitempty"`
+	Name string     `json:"name"`
 
 	// ParentId System-generated unique identifier for the parent collection.
-	ParentId   *string    `json:"parentId,omitempty"`
+	ParentId   *uuid.UUID `json:"parentId,omitempty"`
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 }
 
@@ -85,20 +78,18 @@ type CollectionChildren struct {
 
 // CollectionCreate Resource create operation model.
 type CollectionCreate struct {
-	Description *string `json:"description,omitempty"`
-	DisplayName string  `json:"displayName"`
+	Name string `json:"name"`
 
 	// ParentId System-generated unique identifier for the parent collection.
-	ParentId *string `json:"parentId,omitempty"`
+	ParentId *uuid.UUID `json:"parentId,omitempty"`
 }
 
 // CollectionUpdate Resource create or update operation model.
 type CollectionUpdate struct {
-	Description *string `json:"description,omitempty"`
-	DisplayName *string `json:"displayName,omitempty"`
+	Name *string `json:"name,omitempty"`
 
 	// ParentId System-generated unique identifier for the parent collection.
-	ParentId *string `json:"parentId,omitempty"`
+	ParentId *uuid.UUID `json:"parentId,omitempty"`
 }
 
 // Error Error is the response model when an API call is unsuccessful.
@@ -116,28 +107,28 @@ type ErrorCode string
 type ErrorType string
 
 // BookmarkKeyBookmarkId defines model for BookmarkKey.bookmarkId.
-type BookmarkKeyBookmarkId = string
+type BookmarkKeyBookmarkId = uuid.UUID
 
 // BookmarkKeyCollectionId defines model for BookmarkKey.collectionId.
-type BookmarkKeyCollectionId = string
+type BookmarkKeyCollectionId = uuid.UUID
 
 // BookmarkKeyUserId defines model for BookmarkKey.userId.
-type BookmarkKeyUserId = string
+type BookmarkKeyUserId = uuid.UUID
 
 // BookmarkParentKeyCollectionId defines model for BookmarkParentKey.collectionId.
-type BookmarkParentKeyCollectionId = string
+type BookmarkParentKeyCollectionId = uuid.UUID
 
 // BookmarkParentKeyUserId defines model for BookmarkParentKey.userId.
-type BookmarkParentKeyUserId = string
+type BookmarkParentKeyUserId = uuid.UUID
 
 // CollectionKeyCollectionId defines model for CollectionKey.collectionId.
-type CollectionKeyCollectionId = string
+type CollectionKeyCollectionId = uuid.UUID
 
 // CollectionKeyUserId defines model for CollectionKey.userId.
-type CollectionKeyUserId = string
+type CollectionKeyUserId = uuid.UUID
 
 // CollectionParentKey defines model for CollectionParentKey.
-type CollectionParentKey = string
+type CollectionParentKey = uuid.UUID
 
 // CollectionsCreateJSONRequestBody defines body for CollectionsCreate for application/json ContentType.
 type CollectionsCreateJSONRequestBody = CollectionCreate

@@ -1,6 +1,6 @@
 import "@typespec/http";
 import "@typespec/rest";
-import "@typespec/openapi3";
+import "@typespec/openapi";
 import "@typespec/versioning";
 
 import "./error.tsp";
@@ -21,15 +21,16 @@ enum Versions {
 
 @resource("users")
 model User {
+    @doc("System-generated unique identifier for the user.")
+    @encode("uuid", string)
     @key("userId")
     @segment("users")
+    @TypeSpec.OpenAPI.extension("x-go-type", "uuid.UUID")
     @visibility("read")
-    @doc("System-generated unique identifier for the user.")
     id: string; 
 
     @visibility("read")
-    createTime: utcDateTime; 
-
+    createTime: utcDateTime;
     @visibility("read")
     updateTime: utcDateTime;
 }
@@ -38,58 +39,59 @@ model User {
 @resource("collections")
 @parentResource(User)
 model Collection {
-    @segment("collections")
-    @key("collectionId")
-    @visibility("read")
     @doc("System-generated unique identifier for the collection.")
+    @encode("uuid", string)
+    @key("collectionId")
+    @segment("collections")
+    @TypeSpec.OpenAPI.extension("x-go-type", "uuid.UUID")
+    @visibility("read")
     id: string;
 
-    @visibility("read", "create", "update")
     @doc("System-generated unique identifier for the parent collection.")
+    @encode("uuid", string)
+    @TypeSpec.OpenAPI.extension("x-go-type", "uuid.UUID")
+    @visibility("read", "create", "update")
     parentId?: string;
     
-    @visibility("read")
-    parentCollection?: string;
-
     @visibility("read", "create", "update")
-    displayName: string;
-    
-    @visibility("read", "create", "update")
-    description?: string;
+    name: string;
 
     @visibility("read")
     createTime: utcDateTime; 
-
     @visibility("read")
     updateTime: utcDateTime;
 }
+
+
 
 @doc("Bookmark is a resource that represents a saved URL.")
 @resource("bookmarks")
 @parentResource(Collection)
 model Bookmark {
-    @segment("bookmarks")
-    @key("bookmarkId")
-    @visibility("read")
     @doc("System-generated unique identifier for the bookmark.")
+    @encode("uuid", string)
+    @key("bookmarkId")
+    @segment("bookmarks")
+    @TypeSpec.OpenAPI.extension("x-go-type", "uuid.UUID")
     id: string;
     
-    @visibility("read", "create", "update")
     @doc("System-generated unique identifier for the parent collection.")
+    @encode("uuid", string)
+    @TypeSpec.OpenAPI.extension("x-go-type", "uuid.UUID")
+    @visibility("read")
     parentId?: string;
 
     @visibility("read", "create")
     url: string; 
 
     @visibility("read", "create", "update")
-    displayName?: string; 
+    title: string; 
 
     @visibility("read", "create", "update")
     tags: string[];
 
     @visibility("read")
     createTime: utcDateTime; 
-
     @visibility("read")
     updateTime: utcDateTime;
 }
