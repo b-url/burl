@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/b-url/burl/cmd/server/bookmark"
+	"github.com/google/uuid"
 	"sync"
 )
 
@@ -23,6 +24,9 @@ var _ bookmark.Repository = &RepositoryMock{}
 //			CreateBookmarkFunc: func(ctx context.Context, tx *sql.Tx, bookmarkMoqParam bookmark.Bookmark) (bookmark.Bookmark, error) {
 //				panic("mock out the CreateBookmark method")
 //			},
+//			GetBookmarkFunc: func(ctx context.Context, tx *sql.Tx, id uuid.UUID, userID uuid.UUID) (bookmark.Bookmark, error) {
+//				panic("mock out the GetBookmark method")
+//			},
 //			TransactionallyFunc: func(ctx context.Context, f func(tx *sql.Tx) error) error {
 //				panic("mock out the Transactionally method")
 //			},
@@ -35,6 +39,9 @@ var _ bookmark.Repository = &RepositoryMock{}
 type RepositoryMock struct {
 	// CreateBookmarkFunc mocks the CreateBookmark method.
 	CreateBookmarkFunc func(ctx context.Context, tx *sql.Tx, bookmarkMoqParam bookmark.Bookmark) (bookmark.Bookmark, error)
+
+	// GetBookmarkFunc mocks the GetBookmark method.
+	GetBookmarkFunc func(ctx context.Context, tx *sql.Tx, id uuid.UUID, userID uuid.UUID) (bookmark.Bookmark, error)
 
 	// TransactionallyFunc mocks the Transactionally method.
 	TransactionallyFunc func(ctx context.Context, f func(tx *sql.Tx) error) error
@@ -50,6 +57,17 @@ type RepositoryMock struct {
 			// BookmarkMoqParam is the bookmarkMoqParam argument value.
 			BookmarkMoqParam bookmark.Bookmark
 		}
+		// GetBookmark holds details about calls to the GetBookmark method.
+		GetBookmark []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Tx is the tx argument value.
+			Tx *sql.Tx
+			// ID is the id argument value.
+			ID uuid.UUID
+			// UserID is the userID argument value.
+			UserID uuid.UUID
+		}
 		// Transactionally holds details about calls to the Transactionally method.
 		Transactionally []struct {
 			// Ctx is the ctx argument value.
@@ -59,6 +77,7 @@ type RepositoryMock struct {
 		}
 	}
 	lockCreateBookmark  sync.RWMutex
+	lockGetBookmark     sync.RWMutex
 	lockTransactionally sync.RWMutex
 }
 
@@ -103,6 +122,54 @@ func (mock *RepositoryMock) CreateBookmarkCalls() []struct {
 	mock.lockCreateBookmark.RLock()
 	calls = mock.calls.CreateBookmark
 	mock.lockCreateBookmark.RUnlock()
+	return calls
+}
+
+// GetBookmark calls GetBookmarkFunc.
+func (mock *RepositoryMock) GetBookmark(ctx context.Context, tx *sql.Tx, id uuid.UUID, userID uuid.UUID) (bookmark.Bookmark, error) {
+	callInfo := struct {
+		Ctx    context.Context
+		Tx     *sql.Tx
+		ID     uuid.UUID
+		UserID uuid.UUID
+	}{
+		Ctx:    ctx,
+		Tx:     tx,
+		ID:     id,
+		UserID: userID,
+	}
+	mock.lockGetBookmark.Lock()
+	mock.calls.GetBookmark = append(mock.calls.GetBookmark, callInfo)
+	mock.lockGetBookmark.Unlock()
+	if mock.GetBookmarkFunc == nil {
+		var (
+			bookmarkOut bookmark.Bookmark
+			errOut      error
+		)
+		return bookmarkOut, errOut
+	}
+	return mock.GetBookmarkFunc(ctx, tx, id, userID)
+}
+
+// GetBookmarkCalls gets all the calls that were made to GetBookmark.
+// Check the length with:
+//
+//	len(mockedRepository.GetBookmarkCalls())
+func (mock *RepositoryMock) GetBookmarkCalls() []struct {
+	Ctx    context.Context
+	Tx     *sql.Tx
+	ID     uuid.UUID
+	UserID uuid.UUID
+} {
+	var calls []struct {
+		Ctx    context.Context
+		Tx     *sql.Tx
+		ID     uuid.UUID
+		UserID uuid.UUID
+	}
+	mock.lockGetBookmark.RLock()
+	calls = mock.calls.GetBookmark
+	mock.lockGetBookmark.RUnlock()
 	return calls
 }
 

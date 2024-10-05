@@ -31,6 +31,7 @@ type Bookmarker struct {
 type Repository interface {
 	Transactionally(ctx context.Context, f func(tx *sql.Tx) error) (err error)
 	CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark Bookmark) (Bookmark, error)
+	GetBookmark(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Bookmark, error)
 }
 
 func NewBookmarker(repository Repository) *Bookmarker {

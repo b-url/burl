@@ -53,7 +53,7 @@ func TestIntegration_BookmarkRepository(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("GetBookmark", func(t *testing.T) {
-		actualBookmark, getErr := repo.GetBookmark(ctx, tx, expectedBookmark.ID)
+		actualBookmark, getErr := repo.GetBookmark(ctx, tx, expectedBookmark.ID, userID)
 		require.NoError(t, getErr)
 
 		assert.Equal(t, expectedBookmark.ID, actualBookmark.ID)
@@ -64,7 +64,12 @@ func TestIntegration_BookmarkRepository(t *testing.T) {
 	})
 
 	t.Run("non-existent bookmark", func(t *testing.T) {
-		_, err = repo.GetBookmark(ctx, tx, uuid.MustParse("00000000-0000-0000-0000-000000000000"))
+		_, err = repo.GetBookmark(ctx, tx, uuid.MustParse("00000000-0000-0000-0000-000000000000"), userID)
+		assert.ErrorIs(t, err, bookmark.ErrBookmarkNotFound)
+	})
+
+	t.Run("returns no result for different user", func(t *testing.T) {
+		_, err = repo.GetBookmark(ctx, tx, expectedBookmark.ID, uuid.MustParse("00000000-0000-0000-0000-000000000000"))
 		assert.ErrorIs(t, err, bookmark.ErrBookmarkNotFound)
 	})
 

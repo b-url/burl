@@ -81,13 +81,13 @@ func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark
 }
 
 // GetBookmark retrieves a bookmark by its ID.
-func (r *SQLRepository) GetBookmark(ctx context.Context, tx *sql.Tx, id uuid.UUID) (Bookmark, error) {
+func (r *SQLRepository) GetBookmark(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Bookmark, error) {
 	query := `
 		SELECT id, collection_id, user_id, url, title, create_time, update_time
 		FROM bookmarks
-		WHERE id = $1
+		WHERE id = $1 AND user_id = $2
 	`
-	row := tx.QueryRowContext(ctx, query, id)
+	row := tx.QueryRowContext(ctx, query, id, userID)
 
 	bookmark := Bookmark{}
 	err := row.Scan(
