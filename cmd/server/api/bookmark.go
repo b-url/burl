@@ -19,7 +19,6 @@ type Bookmarker interface {
 // TODO: http.Error should be replaced by the error model.
 // TODO: Replace all fmt.Println with slog logging calls.
 // TODO: Extract the conversion from bookmark.Bookmark to v1.Bookmark to a function.
-// TODO: Extract the json response writing.
 
 func (s *Server) BookmarksCreate(
 	w http.ResponseWriter,
@@ -66,13 +65,7 @@ func (s *Server) BookmarksCreate(
 		UpdateTime: createdBookmark.UpdateTime,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-
-	// Write response body as json
-	if err = json.NewEncoder(w).Encode(b); err != nil {
-		http.Error(w, "failed to encode to json", http.StatusInternalServerError)
-	}
+	writeJSONResponse(w, b, http.StatusCreated)
 }
 
 func (s *Server) BookmarksRead(
