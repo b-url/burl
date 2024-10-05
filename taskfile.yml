@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 vars:
   SHELL_TO_USE:
@@ -10,21 +10,27 @@ tasks:
     desc: "Install the burl CLI locally"
     cmds:
       - "go install ./cmd/burl"
+
+  test:
+    desc: "Run all short tests"
+    cmds:
+      - "go test -short -v ./..."
+
   generate-labeler:
     desc: "Re-generate the GitHub labeler config"
     cmds:
       - "{{.SHELL_TO_USE}} scripts/generate-labeler.sh"
-  
+
   lint-fix:
     desc: "Lint Go Code"
     cmds:
       - "golangci-lint run --fix"
-  
+
   lint:
     desc: "Lint all modules"
     cmds:
       - "golangci-lint run"
-  
+
   changelog:
     desc: "Generate a changelog for a pull request"
     cmds:

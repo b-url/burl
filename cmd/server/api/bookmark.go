@@ -56,16 +56,20 @@ func (s *Server) BookmarksCreate(
 		return
 	}
 
-	b := v1.Bookmark{
-		Id:         createdBookmark.ID,
-		ParentId:   &collectionID,
-		Url:        createdBookmark.URL,
-		Title:      createdBookmark.Title,
-		CreateTime: createdBookmark.CreateTime,
-		UpdateTime: createdBookmark.UpdateTime,
-	}
-
+	b := newBookmark(createdBookmark, collectionID)
 	writeJSONResponse(w, b, http.StatusCreated)
+}
+
+func newBookmark(bookmark bookmark.Bookmark, collectionID uuid.UUID) v1.Bookmark {
+	b := v1.Bookmark{
+		Id:         bookmark.ID,
+		ParentId:   &collectionID,
+		Url:        bookmark.URL,
+		Title:      bookmark.Title,
+		CreateTime: bookmark.CreateTime,
+		UpdateTime: bookmark.UpdateTime,
+	}
+	return b
 }
 
 func (s *Server) BookmarksRead(
