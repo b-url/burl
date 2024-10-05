@@ -3,7 +3,15 @@ package bookmark
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
+	"github.com/google/uuid"
+)
+
+var (
+	// ErrBookmarkNotFound is returned when a bookmark is not found.
+	ErrBookmarkNotFound = errors.New("bookmark not found")
 )
 
 type SQLRepository struct {
@@ -66,6 +74,35 @@ func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark
 
 	err := row.Scan(&bookmark.ID, &bookmark.CreateTime, &bookmark.UpdateTime)
 	if err != nil {
+		return Bookmark{}, err
+	}
+
+	return bookmark, nil
+}
+
+// GetBookmark retrieves a bookmark by its ID.
+func (r *SQLRepository) GetBookmark(ctx context.Context, tx *sql.Tx, id uuid.UUID) (Bookmark, error) {
+	query := `
+		SELECT id, collection_id, user_id, url, title, create_time, update_time
+		FROM bookmarks
+		WHERE id = $1
+	`
+	row := tx.QueryRowContext(ctx, query, id)
+
+	bookmark := Bookmark{}
+	err := row.Scan(
+		&bookmark.ID,
+		&bookmark.CollectionID,
+		&bookmark.UserID,
+		&bookmark.URL,
+		&bookmark.Title,
+		&bookmark.CreateTime,
+		&bookmark.UpdateTime,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Bookmark{}, ErrBookmarkNotFound
+		}
 		return Bookmark{}, err
 	}
 

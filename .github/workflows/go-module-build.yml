@@ -25,8 +25,18 @@ jobs:
       uses: golangci/golangci-lint-action@v6.1.0
 
     - name: Test 
-      run: go test -v ./...
-      
+      run: go test -short -v ./...
+
+    - uses: hoverkraft-tech/compose-action@v2.0.2
+      with:
+        down-flag: --volumes
+        services:
+          postgres
+          postgres-migration
+
+    - name: Run Integration Tests
+      run: go test -v -run '^TestIntegration_' ./...
+    
     - name: Build server 
       run: go build -o server ./cmd/server
 
