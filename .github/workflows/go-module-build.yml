@@ -30,7 +30,7 @@ jobs:
     - uses: hoverkraft-tech/compose-action@v2.0.2
       with:
         down-flags: --volumes
-        services:
+        services: |
           postgres
           postgres-migration
 
