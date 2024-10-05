@@ -76,3 +76,23 @@ func (b *Bookmarker) CreateBookmark(ctx context.Context, params CreateBookmarkPa
 
 	return createdBookmark, nil
 }
+
+// GetBookmark retrieves a bookmark by its ID and user ID.
+func (b *Bookmarker) GetBookmark(ctx context.Context, id, userID uuid.UUID) (Bookmark, error) {
+	bookmark := Bookmark{}
+	err := b.repository.Transactionally(ctx, func(tx *sql.Tx) error {
+		var err error
+		bookmark, err = b.repository.GetBookmark(ctx, tx, id, userID)
+		if err != nil {
+			// TODO: Marshal error model.
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return bookmark, err
+	}
+
+	return bookmark, nil
+}
