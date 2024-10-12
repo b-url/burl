@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/b-url/burl/cmd/server/log"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -128,15 +129,15 @@ func (c *Config) NewLogger() *slog.Logger {
 	switch logType {
 	case LogTypeText:
 		return slog.New(
-			tint.NewHandler(os.Stdout, &tint.Options{
+			log.NewLogHandler(tint.NewHandler(os.Stdout, &tint.Options{
 				Level: logLevel,
-			}),
+			})),
 		)
 	case LogTypeJSON:
 		return slog.New(
-			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			log.NewLogHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 				Level: logLevel,
-			}),
+			})),
 		)
 	default:
 		return nil

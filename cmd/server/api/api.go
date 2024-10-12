@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	api "github.com/b-url/burl/api/v1"
@@ -11,12 +12,15 @@ var _ api.ServerInterface = &Server{}
 
 type Server struct {
 	Bookmarker Bookmarker
+
+	logger *slog.Logger
 }
 
 // NewServer returns a new Server.
-func NewServer(b Bookmarker) *Server {
+func NewServer(b Bookmarker, logger *slog.Logger) *Server {
 	return &Server{
 		Bookmarker: b,
+		logger:     logger,
 	}
 }
 

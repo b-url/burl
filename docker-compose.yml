@@ -4,6 +4,7 @@ services:
     environment:
       BURLSERVER_HTTP_PORT: 8080
       BURLSERVER_DB_URL: "postgres://develop:develop_secret@database:5432/develop?sslmode=disable"
+      BURLSERVER_LOG_LEVEL: DEBUG 
     image: burl
     build:
       context: .

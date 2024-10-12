@@ -16,6 +16,7 @@ import (
 	"github.com/b-url/burl/cmd/server/bookmark"
 	"github.com/b-url/burl/cmd/server/config"
 	"github.com/b-url/burl/cmd/server/database"
+	"github.com/b-url/burl/cmd/server/middleware"
 	"github.com/spf13/cobra"
 )
 
@@ -68,9 +69,9 @@ func (sc *ServeCommand) Execute(cmd *cobra.Command, _ []string) error {
 	}
 
 	repo := bookmark.NewRepository(db)
-	bookmarker := bookmark.NewBookmarker(repo)
+	bookmarker := bookmark.NewBookmarker(repo, sc.logger)
 
-	return sc.Serve(ctx, apiimpl.NewServer(bookmarker))
+	return sc.Serve(ctx, apiimpl.NewServer(bookmarker, sc.logger))
 }
 
 // Serve starts the burl server and blocks until it's shut down.
@@ -83,7 +84,13 @@ func (sc *ServeCommand) Serve(ctx context.Context, server api.ServerInterface) e
 	sc.logger.InfoContext(ctx, "Starting server", "port", p)
 
 	r := http.NewServeMux()
-	h := api.HandlerFromMux(server, r)
+	h := api.HandlerWithOptions(server, api.StdHTTPServerOptions{
+		BaseRouter: r,
+		Middlewares: []api.MiddlewareFunc{
+			api.MiddlewareFunc(middleware.RequestID),
+		},
+	})
+
 	s := &http.Server{
 		Handler:      h,
 		Addr:         fmt.Sprintf(":%d", p),
