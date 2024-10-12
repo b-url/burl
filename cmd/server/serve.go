@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,13 +27,16 @@ const (
 type ServeCommand struct {
 	Command *cobra.Command
 
+	logger *slog.Logger
 	config *config.Config
 }
 
 // NewServeCMD returns a new serve command.
 func NewServeCMD() *ServeCommand {
+	config := config.New()
 	serveCommand := &ServeCommand{
-		config: config.New(),
+		config: config,
+		logger: config.NewLogger(),
 	}
 
 	serveCommand.Command = &cobra.Command{
@@ -76,7 +80,7 @@ func (sc *ServeCommand) Serve(ctx context.Context, server api.ServerInterface) e
 		return err
 	}
 
-	fmt.Printf("Starting server on port %d\n", p)
+	sc.logger.InfoContext(ctx, "Starting server", "port", p)
 
 	r := http.NewServeMux()
 	h := api.HandlerFromMux(server, r)
@@ -91,6 +95,7 @@ func (sc *ServeCommand) Serve(ctx context.Context, server api.ServerInterface) e
 	errChan := make(chan error, 1)
 	go func() {
 		if err = s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			sc.logger.ErrorContext(ctx, "Server is closing", "error", err)
 			errChan <- err
 		}
 	}()
@@ -98,6 +103,7 @@ func (sc *ServeCommand) Serve(ctx context.Context, server api.ServerInterface) e
 	// Wait for context cancellation or server error.
 	select {
 	case <-ctx.Done():
+		sc.logger.InfoContext(ctx, "Shutting down server")
 		// Shutdown the server gracefully.
 		ctxShutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

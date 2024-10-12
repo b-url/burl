@@ -4,8 +4,12 @@ package config
 import (
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 
+	"github.com/lmittmann/tint"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -38,6 +42,18 @@ func New() *Config {
 	return &Config{
 		viper: v,
 	}
+}
+
+// Bind each cobra flag to its associated viper configuration (config file and environment variable).
+func (c *Config) BindFlags(cmd *cobra.Command) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		configName := f.Name
+
+		if !f.Changed && c.viper.IsSet(configName) {
+			val := c.viper.Get(configName)
+			_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+		}
+	})
 }
 
 // int returns the value of the key as an integer.
@@ -94,4 +110,35 @@ func (c *Config) LogType() (LogType, error) {
 	}
 
 	return logType, nil
+}
+
+// NewLogger creates a new *slog.Logger based on the configuration.
+func (c *Config) NewLogger() *slog.Logger {
+	logLevel, err := c.LogLevel()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var logType LogType
+	logType, err = c.LogType()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	switch logType {
+	case LogTypeText:
+		return slog.New(
+			tint.NewHandler(os.Stdout, &tint.Options{
+				Level: logLevel,
+			}),
+		)
+	case LogTypeJSON:
+		return slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				Level: logLevel,
+			}),
+		)
+	default:
+		return nil
+	}
 }
