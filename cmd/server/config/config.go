@@ -3,19 +3,25 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 )
 
 const (
-	dbURL    = "DB_URL"
-	httpPort = "HTTP_PORT"
+	EnvironmentPrefix = "burlserver"
+
+	FlagLogLevel    = "log-level"
+	FlagLogType     = "log-type"
+	FlagDatabaseURL = "db-url"
+	FlagHTTPPort    = "http-port"
 )
 
 // Config represents the configuration of the burl server.
 // It uses viper to read the configuration from the environment.
-// All the configuration keys are prefixed with "burl".
-// For example, the key "DB_URL" is read from the environment as "BURL_DB_URL".
+//
+// All the configuration keys are prefixed with "burlserver".
+// For example, the key "DB_URL" is read from the environment as "BURLSERVER_DB_URL".
 type Config struct {
 	viper *viper.Viper
 }
@@ -23,8 +29,11 @@ type Config struct {
 // New returns a new Config.
 func New() *Config {
 	v := viper.New()
-	v.SetEnvPrefix("burlserver")
+
+	v.SetEnvPrefix(EnvironmentPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	v.AutomaticEnv()
+
 	return &Config{
 		viper: v,
 	}
@@ -49,7 +58,7 @@ func (c *Config) str(key string) (string, error) {
 }
 
 // DBURL returns the database URL.
-func (c *Config) DBURL() (string, error) { return c.str(dbURL) }
+func (c *Config) DBURL() (string, error) { return c.str(FlagDatabaseURL) }
 
 // HTTPPort returns the HTTP port.
-func (c *Config) HTTPPort() (int, error) { return c.int(httpPort) }
+func (c *Config) HTTPPort() (int, error) { return c.int(FlagHTTPPort) }
