@@ -79,3 +79,19 @@ func (c *Config) LogLevel() (slog.Level, error) {
 
 	return level, nil
 }
+
+// LogType returns the log type that was configured for the server.
+func (c *Config) LogType() (LogType, error) {
+	lt, err := c.str(FlagLogType)
+	if err != nil {
+		return LogTypeText, err
+	}
+
+	var logType LogType
+	err = logType.UnmarshalText([]byte(lt))
+	if err != nil {
+		return LogTypeText, fmt.Errorf("invalid log type '%s': %w", lt, err)
+	}
+
+	return logType, nil
+}
