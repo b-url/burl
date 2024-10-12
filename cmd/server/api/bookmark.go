@@ -14,12 +14,11 @@ import (
 
 type Bookmarker interface {
 	CreateBookmark(ctx context.Context, b bookmark.CreateBookmarkParams) (bookmark.Bookmark, error)
+	GetBookmark(ctx context.Context, id, userID uuid.UUID) (bookmark.Bookmark, error)
 }
 
 // TODO: http.Error should be replaced by the error model.
 // TODO: Replace all fmt.Println with slog logging calls.
-// TODO: Extract the conversion from bookmark.Bookmark to v1.Bookmark to a function.
-// TODO: Extract the json response writing.
 
 func (s *Server) BookmarksCreate(
 	w http.ResponseWriter,
@@ -57,33 +56,40 @@ func (s *Server) BookmarksCreate(
 		return
 	}
 
+	b := newBookmark(createdBookmark, collectionID)
+	writeJSONResponse(w, b, http.StatusCreated)
+}
+
+func newBookmark(bookmark bookmark.Bookmark, collectionID uuid.UUID) v1.Bookmark {
 	b := v1.Bookmark{
-		Id:         createdBookmark.ID,
+		Id:         bookmark.ID,
 		ParentId:   &collectionID,
-		Url:        createdBookmark.URL,
-		Title:      createdBookmark.Title,
-		CreateTime: createdBookmark.CreateTime,
-		UpdateTime: createdBookmark.UpdateTime,
+		Url:        bookmark.URL,
+		Title:      bookmark.Title,
+		CreateTime: bookmark.CreateTime,
+		UpdateTime: bookmark.UpdateTime,
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-
-	// Write response body as json
-	if err = json.NewEncoder(w).Encode(b); err != nil {
-		http.Error(w, "failed to encode to json", http.StatusInternalServerError)
-	}
+	return b
 }
 
 func (s *Server) BookmarksRead(
 	w http.ResponseWriter,
-	_ *http.Request,
+	r *http.Request,
 	userID uuid.UUID,
-	collectionID uuid.UUID,
+	_ uuid.UUID,
 	bookmarkID uuid.UUID,
 ) {
-	fmt.Printf("Reading bookmark %s for user %s in collection %s\n", bookmarkID, userID, collectionID)
-	w.WriteHeader(http.StatusNotImplemented)
+	ctx := r.Context()
+
+	bookmark, err := s.Bookmarker.GetBookmark(ctx, bookmarkID, userID)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	b := newBookmark(bookmark, bookmark.CollectionID)
+	writeJSONResponse(w, b, http.StatusOK)
 }
 
 func (s *Server) BookmarksUpdate(
