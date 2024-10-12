@@ -1,4 +1,4 @@
-// package config contains the configuration of the burl server.
+// Package config contains the configuration of the burl server.
 package config
 
 import (

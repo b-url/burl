@@ -6,7 +6,6 @@ import (
 	"time"
 
 	apiimpl "github.com/b-url/burl/cmd/server/api"
-	"github.com/b-url/burl/cmd/server/config"
 )
 
 func TestNewServeCMD(t *testing.T) {
@@ -19,7 +18,8 @@ func TestNewServeCMD(t *testing.T) {
 
 func TestServe(t *testing.T) {
 	t.Run("should start the server", func(t *testing.T) {
-		c := config.New()
+		serveCommand := NewServeCMD()
+
 		t.Setenv("BURLSERVER_DB_URL", "postgres://localhost:5432/burl")
 		t.Setenv("BURLSERVER_HTTP_PORT", "7777")
 
@@ -30,7 +30,7 @@ func TestServe(t *testing.T) {
 		// Run the server in a separate goroutine to simulate actual use
 		errChan := make(chan error, 1)
 		go func() {
-			errChan <- Serve(ctx, c, apiimpl.NewServer(nil))
+			errChan <- serveCommand.Serve(ctx, apiimpl.NewServer(nil))
 		}()
 
 		// Give the server some time to start
@@ -61,14 +61,15 @@ func TestServe(t *testing.T) {
 	})
 
 	t.Run("should return an error if the HTTP port is not set", func(t *testing.T) {
-		c := config.New()
+		serveCommand := NewServeCMD()
+
 		t.Setenv("BURLSERVER_DB_URL", "postgres://localhost:5432/burl")
 
 		// Use a context with a short timeout
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
-		err := Serve(ctx, c, apiimpl.NewServer(nil))
+		err := serveCommand.Serve(ctx, apiimpl.NewServer(nil))
 		if err == nil {
 			t.Error("Serve() error = nil; want an error")
 		}

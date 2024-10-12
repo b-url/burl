@@ -18,53 +18,73 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const readTimeout = time.Second * 5
+const (
+	DefaultReadTimeout  = time.Second * 5
+	DefaultWriteTimeout = time.Second * 5
+)
+
+type ServeCommand struct {
+	Command *cobra.Command
+
+	config *config.Config
+}
 
 // NewServeCMD returns a new serve command.
-func NewServeCMD() *cobra.Command {
-	return &cobra.Command{
+func NewServeCMD() *ServeCommand {
+	serveCommand := &ServeCommand{
+		config: config.New(),
+	}
+
+	serveCommand.Command = &cobra.Command{
 		Use:   "serve",
 		Short: "Serve the burl server",
 		Long:  `This command starts the burl server.`,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			// Create a context that listens for the interrupt signal.
-			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
-			defer stop()
-
-			cfg := config.New()
-			dsn, err := cfg.DBURL()
-			if err != nil {
-				return err
-			}
-
-			db, err := database.NewConnection(database.Config{
-				DSN: dsn,
-			})
-			if err != nil {
-				return err
-			}
-
-			repo := bookmark.NewRepository(db)
-			b := bookmark.NewBookmarker(repo)
-
-			return Serve(ctx, config.New(), apiimpl.NewServer(b))
-		},
+		RunE:  serveCommand.Execute,
 	}
+
+	return serveCommand
 }
 
-// Serve starts the burl server and blocks until it's shut down.
-func Serve(ctx context.Context, c *config.Config, server api.ServerInterface) error {
-	p, err := c.HTTPPort()
+// Execute creates the dependencies for the server and starts serving.
+func (sc *ServeCommand) Execute(cmd *cobra.Command, _ []string) error {
+	// Create a context that listens for the interrupt signal.
+	ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	dsn, err := sc.config.DBURL()
 	if err != nil {
 		return err
 	}
+
+	db, err := database.NewConnection(database.Config{
+		DSN: dsn,
+	})
+	if err != nil {
+		return err
+	}
+
+	repo := bookmark.NewRepository(db)
+	bookmarker := bookmark.NewBookmarker(repo)
+
+	return sc.Serve(ctx, apiimpl.NewServer(bookmarker))
+}
+
+// Serve starts the burl server and blocks until it's shut down.
+func (sc *ServeCommand) Serve(ctx context.Context, server api.ServerInterface) error {
+	p, err := sc.config.HTTPPort()
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("Starting server on port %d\n", p)
+
 	r := http.NewServeMux()
 	h := api.HandlerFromMux(server, r)
 	s := &http.Server{
-		Handler:     h,
-		Addr:        fmt.Sprintf(":%d", p),
-		ReadTimeout: readTimeout,
+		Handler:      h,
+		Addr:         fmt.Sprintf(":%d", p),
+		ReadTimeout:  DefaultReadTimeout,
+		WriteTimeout: DefaultWriteTimeout,
 	}
 
 	// Start the server in a goroutine.
