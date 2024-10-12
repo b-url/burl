@@ -3,6 +3,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -62,3 +63,19 @@ func (c *Config) DBURL() (string, error) { return c.str(FlagDatabaseURL) }
 
 // HTTPPort returns the HTTP port.
 func (c *Config) HTTPPort() (int, error) { return c.int(FlagHTTPPort) }
+
+// LogLevel returns the log level that was configured for the server.
+func (c *Config) LogLevel() (slog.Level, error) {
+	ll, err := c.str(FlagLogLevel)
+	if err != nil {
+		return slog.LevelInfo, err
+	}
+
+	var level slog.Level
+	err = level.UnmarshalText([]byte(ll))
+	if err != nil {
+		return slog.LevelInfo, fmt.Errorf("invalid log level '%s': %w", ll, err)
+	}
+
+	return level, nil
+}
