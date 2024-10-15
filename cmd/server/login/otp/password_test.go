@@ -7,7 +7,7 @@ import (
 )
 
 func TestGeneratorFunc_Generate(t *testing.T) {
-	f := func(length int) (string, error) {
+	f := func(_ int) (string, error) {
 		return "123456", nil
 	}
 
