@@ -1,3 +1,4 @@
+// Package otp provides the One-Time Password authentication mechanism.
 package otp
 
 const passwordLength = 6 // passwordLength is the length of the OTP password.
