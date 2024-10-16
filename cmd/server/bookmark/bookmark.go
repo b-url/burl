@@ -4,6 +4,7 @@ package bookmark
 import (
 	"context"
 	"database/sql"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +27,7 @@ type Bookmark struct {
 // It encapsulates the bookmark repository and perform related side effects.
 type Bookmarker struct {
 	repository Repository
+	logger     *slog.Logger
 }
 
 type Repository interface {
@@ -34,8 +36,8 @@ type Repository interface {
 	GetBookmark(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Bookmark, error)
 }
 
-func NewBookmarker(repository Repository) *Bookmarker {
-	return &Bookmarker{repository: repository}
+func NewBookmarker(repository Repository, logger *slog.Logger) *Bookmarker {
+	return &Bookmarker{repository: repository, logger: logger}
 }
 
 type CreateBookmarkParams struct {

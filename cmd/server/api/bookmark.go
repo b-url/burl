@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -80,16 +81,23 @@ func (s *Server) BookmarksRead(
 	bookmarkID uuid.UUID,
 ) {
 	ctx := r.Context()
+	s.logger.DebugContext(ctx, "Reading bookmark", "bookmarkID", bookmarkID, "userID", userID)
 
-	bookmark, err := s.Bookmarker.GetBookmark(ctx, bookmarkID, userID)
+	b, err := s.Bookmarker.GetBookmark(ctx, bookmarkID, userID)
 	if err != nil {
-		fmt.Println(err)
+		// Check if the error is a not found error.
+		if errors.Is(err, bookmark.ErrBookmarkNotFound) {
+			s.logger.WarnContext(ctx, "Bookmark not found", "bookmarkID", bookmarkID, "userID", userID)
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	b := newBookmark(bookmark, bookmark.CollectionID)
-	writeJSONResponse(w, b, http.StatusOK)
+	apiBookmark := newBookmark(b, b.CollectionID)
+	writeJSONResponse(w, apiBookmark, http.StatusOK)
 }
 
 func (s *Server) BookmarksUpdate(

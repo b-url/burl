@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	v1 "github.com/b-url/burl/api/v1"
@@ -19,8 +21,8 @@ import (
 //go:generate moq -out bookmark_mock_test.go -pkg api_test -stub ../bookmark Repository
 
 func setupServerWithMock(repository *RepositoryMock) *api.Server {
-	bookmarker := bookmark.NewBookmarker(repository)
-	return api.NewServer(bookmarker)
+	bookmarker := bookmark.NewBookmarker(repository, slog.New(slog.NewTextHandler(os.Stdout, nil)))
+	return api.NewServer(bookmarker, slog.New(slog.NewTextHandler(os.Stdout, nil)))
 }
 
 func validateResponse(t *testing.T, rr *httptest.ResponseRecorder, expectedStatus int, responseBody interface{}) {
