@@ -27,8 +27,8 @@ type TransactionManager struct {
 	db     *sql.DB
 }
 
-// NewContext creates a new Manager.
-func NewContext(logger *slog.Logger, db *sql.DB) *TransactionManager {
+// NewTransactionManager creates a new Manager.
+func NewTransactionManager(logger *slog.Logger, db *sql.DB) *TransactionManager {
 	return &TransactionManager{db: db, logger: logger}
 }
 
@@ -38,7 +38,7 @@ func (c *TransactionManager) Database() *sql.DB {
 
 // Transactionally executes a function within a database transaction. It commits the transaction
 // if the function succeeds, otherwise it rolls back. If rollback fails, both errors are returned.
-func (c *TransactionManager) Transactionally(ctx context.Context, f func(tx *sql.Tx) error) (err error) {
+func (c *TransactionManager) Transactionally(ctx context.Context, f func(tx Conn) error) error {
 	tx, err := c.db.BeginTx(ctx, nil)
 	if err != nil {
 		c.logger.ErrorContext(ctx, "failed to begin transaction", "error", err)

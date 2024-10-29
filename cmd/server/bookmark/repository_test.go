@@ -23,12 +23,12 @@ func TestIntegration_BookmarkRepository(t *testing.T) {
 	db := getDatabase(t)
 	t.Cleanup(func() { db.Close() })
 
-	repo := bookmark.NewRepository(db)
-
 	// Arrange
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
+
+	repo := bookmark.NewRepository(tx)
 
 	// Insert new user.
 	userID := uuid.MustParse("2f618d2d-e65d-4541-b09f-1cf58edc36b4")
@@ -46,11 +46,11 @@ func TestIntegration_BookmarkRepository(t *testing.T) {
 		Title:        "Example",
 	}
 
-	_, err = repo.CreateBookmark(ctx, tx, expectedBookmark)
+	_, err = repo.CreateBookmark(ctx, expectedBookmark)
 	require.NoError(t, err)
 
 	t.Run("GetBookmark", func(t *testing.T) {
-		actualBookmark, getErr := repo.GetBookmark(ctx, tx, expectedBookmark.ID, userID)
+		actualBookmark, getErr := repo.GetBookmark(ctx, expectedBookmark.ID, userID)
 		require.NoError(t, getErr)
 
 		assert.Equal(t, expectedBookmark.ID, actualBookmark.ID)
@@ -61,12 +61,12 @@ func TestIntegration_BookmarkRepository(t *testing.T) {
 	})
 
 	t.Run("non-existent bookmark", func(t *testing.T) {
-		_, err = repo.GetBookmark(ctx, tx, uuid.MustParse("00000000-0000-0000-0000-000000000000"), userID)
+		_, err = repo.GetBookmark(ctx, uuid.MustParse("00000000-0000-0000-0000-000000000000"), userID)
 		assert.ErrorIs(t, err, bookmark.ErrBookmarkNotFound)
 	})
 
 	t.Run("returns no result for different user", func(t *testing.T) {
-		_, err = repo.GetBookmark(ctx, tx, expectedBookmark.ID, uuid.MustParse("00000000-0000-0000-0000-000000000000"))
+		_, err = repo.GetBookmark(ctx, expectedBookmark.ID, uuid.MustParse("00000000-0000-0000-0000-000000000000"))
 		assert.ErrorIs(t, err, bookmark.ErrBookmarkNotFound)
 	})
 
@@ -123,12 +123,12 @@ func TestIntegration_CreateCollection(t *testing.T) {
 	db := getDatabase(t)
 	t.Cleanup(func() { db.Close() })
 
-	repo := bookmark.NewRepository(db)
-
 	// Arrange
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
+
+	repo := bookmark.NewRepository(tx)
 
 	// Insert new user.
 	userID := uuid.MustParse("2f618d2d-e65d-4541-b09f-1cf58edc36b4")
@@ -141,10 +141,10 @@ func TestIntegration_CreateCollection(t *testing.T) {
 		ParentID: nil,
 	}
 
-	createdCollection, err := repo.CreateCollection(ctx, tx, collection)
+	createdCollection, err := repo.CreateCollection(ctx, collection)
 	require.NoError(t, err)
 
-	fetchedCollection, err := repo.GetCollection(ctx, tx, createdCollection.ID, userID)
+	fetchedCollection, err := repo.GetCollection(ctx, createdCollection.ID, userID)
 	require.NoError(t, err)
 
 	assert.Equal(t, createdCollection.ID, fetchedCollection.ID)
@@ -161,12 +161,12 @@ func TestIntegration_UpdateCollection(t *testing.T) {
 	db := getDatabase(t)
 	t.Cleanup(func() { db.Close() })
 
-	repo := bookmark.NewRepository(db)
-
 	// Arrange
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
+
+	repo := bookmark.NewRepository(tx)
 
 	// Insert new user.
 	userID := uuid.MustParse("2f618d2d-e65d-4541-b09f-1cf58edc36b4")
@@ -179,7 +179,7 @@ func TestIntegration_UpdateCollection(t *testing.T) {
 		ParentID: nil,
 	}
 
-	createdCollection, err := repo.CreateCollection(ctx, tx, collection)
+	createdCollection, err := repo.CreateCollection(ctx, collection)
 	require.NoError(t, err)
 
 	updatedCollection := bookmark.Collection{
@@ -189,10 +189,10 @@ func TestIntegration_UpdateCollection(t *testing.T) {
 		ParentID: nil,
 	}
 
-	_, err = repo.UpdateCollection(ctx, tx, updatedCollection)
+	_, err = repo.UpdateCollection(ctx, updatedCollection)
 	require.NoError(t, err)
 
-	fetchedCollection, err := repo.GetCollection(ctx, tx, createdCollection.ID, userID)
+	fetchedCollection, err := repo.GetCollection(ctx, createdCollection.ID, userID)
 	require.NoError(t, err)
 
 	assert.Equal(t, updatedCollection.Name, fetchedCollection.Name)

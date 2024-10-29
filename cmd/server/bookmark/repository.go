@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
+	"github.com/b-url/burl/cmd/server/database"
 	"github.com/google/uuid"
 )
 
@@ -15,54 +15,21 @@ var (
 )
 
 type SQLRepository struct {
-	DB *sql.DB
+	conn database.Conn
 }
 
-func NewRepository(db *sql.DB) *SQLRepository {
-	return &SQLRepository{DB: db}
-}
-
-// Transactionally executes a function within a database transaction. It commits the transaction
-// if the function succeeds, otherwise it rolls back. If rollback fails, both errors are returned.
-func (r *SQLRepository) Transactionally(ctx context.Context, f func(tx *sql.Tx) error) (err error) {
-	tx, err := r.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				err = fmt.Errorf("panic occurred: %v, rollback error: %w", p, rbErr)
-			} else {
-				err = fmt.Errorf("panic occurred: %v", p)
-			}
-		}
-	}()
-
-	err = f(tx)
-	if err != nil {
-		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("transaction rollback error: %w, original error: %w", rbErr, err)
-		}
-		return err
-	}
-
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+func NewRepository(c database.Conn) *SQLRepository {
+	return &SQLRepository{conn: c}
 }
 
 // CreateBookmark creates a new bookmark.
-func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark Bookmark) (Bookmark, error) {
+func (r *SQLRepository) CreateBookmark(ctx context.Context, bookmark Bookmark) (Bookmark, error) {
 	query := `
 		INSERT INTO bookmarks (id, collection_id, user_id, url, title)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, create_time, update_time
 	`
-	row := tx.QueryRowContext(
+	row := r.conn.QueryRowContext(
 		ctx,
 		query,
 		bookmark.ID,
@@ -81,13 +48,13 @@ func (r *SQLRepository) CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark
 }
 
 // GetBookmark retrieves a bookmark by its ID.
-func (r *SQLRepository) GetBookmark(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Bookmark, error) {
+func (r *SQLRepository) GetBookmark(ctx context.Context, id, userID uuid.UUID) (Bookmark, error) {
 	query := `
 		SELECT id, collection_id, user_id, url, title, create_time, update_time
 		FROM bookmarks
 		WHERE id = $1 AND user_id = $2
 	`
-	row := tx.QueryRowContext(ctx, query, id, userID)
+	row := r.conn.QueryRowContext(ctx, query, id, userID)
 
 	bookmark := Bookmark{}
 	err := row.Scan(
@@ -110,13 +77,13 @@ func (r *SQLRepository) GetBookmark(ctx context.Context, tx *sql.Tx, id, userID 
 }
 
 // CreateCollection creates a new collection in the collection table.
-func (r *SQLRepository) CreateCollection(ctx context.Context, tx *sql.Tx, collection Collection) (Collection, error) {
+func (r *SQLRepository) CreateCollection(ctx context.Context, collection Collection) (Collection, error) {
 	query := `
 		INSERT INTO collections (id, user_id, name, parent_id)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, create_time, update_time
 	`
-	row := tx.QueryRowContext(
+	row := r.conn.QueryRowContext(
 		ctx,
 		query,
 		collection.ID,
@@ -134,13 +101,13 @@ func (r *SQLRepository) CreateCollection(ctx context.Context, tx *sql.Tx, collec
 }
 
 // GetCollection retrieves a collection by its ID.
-func (r *SQLRepository) GetCollection(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Collection, error) {
+func (r *SQLRepository) GetCollection(ctx context.Context, id, userID uuid.UUID) (Collection, error) {
 	query := `
 		SELECT id, user_id, name, parent_id, create_time, update_time
 		FROM collections
 		WHERE id = $1 AND user_id = $2
 	`
-	row := tx.QueryRowContext(ctx, query, id, userID)
+	row := r.conn.QueryRowContext(ctx, query, id, userID)
 
 	collection := Collection{}
 	err := row.Scan(
@@ -159,14 +126,14 @@ func (r *SQLRepository) GetCollection(ctx context.Context, tx *sql.Tx, id, userI
 }
 
 // UpdateCollection updates a collection in the collection table.
-func (r *SQLRepository) UpdateCollection(ctx context.Context, tx *sql.Tx, collection Collection) (Collection, error) {
+func (r *SQLRepository) UpdateCollection(ctx context.Context, collection Collection) (Collection, error) {
 	query := `
 		UPDATE collections
 		SET name = $1, parent_id = $2
 		WHERE id = $3 AND user_id = $4
 	`
 
-	_, err := tx.ExecContext(ctx, query, collection.Name, collection.ParentID, collection.ID, collection.UserID)
+	_, err := r.conn.ExecContext(ctx, query, collection.Name, collection.ParentID, collection.ID, collection.UserID)
 	if err != nil {
 		return Collection{}, err
 	}

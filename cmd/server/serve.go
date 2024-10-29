@@ -68,8 +68,8 @@ func (sc *ServeCommand) Execute(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	repo := bookmark.NewRepository(db)
-	bookmarker := bookmark.NewBookmarker(repo, sc.logger)
+	transactionManager := database.NewTransactionManager(sc.logger, db)
+	bookmarker := bookmark.NewBookmarker(transactionManager, sc.logger)
 
 	return sc.Serve(ctx, apiimpl.NewServer(bookmarker, sc.logger))
 }
