@@ -30,11 +30,6 @@ type Bookmarker struct {
 	logger             *slog.Logger
 }
 
-type Repository interface {
-	CreateBookmark(ctx context.Context, bookmark Bookmark) (Bookmark, error)
-	GetBookmark(ctx context.Context, id, userID uuid.UUID) (Bookmark, error)
-}
-
 func NewBookmarker(tm *database.TransactionManager, logger *slog.Logger) *Bookmarker {
 	return &Bookmarker{
 		transactionManager: tm,
