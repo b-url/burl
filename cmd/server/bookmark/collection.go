@@ -17,6 +17,10 @@ type Collection struct {
 	UpdateTime *time.Time
 }
 
+func GetCollection(_ context.Context, _ uuid.UUID, _ uuid.UUID) (Collection, error) {
+	return Collection{}, nil
+}
+
 type CreateCollectionParams struct {
 	Name     string
 	ParentID *uuid.UUID
@@ -24,5 +28,16 @@ type CreateCollectionParams struct {
 }
 
 func (b *Bookmarker) CreateCollection(_ context.Context, _ CreateBookmarkParams) (Collection, error) {
+	return Collection{}, nil
+}
+
+type UpdateCollectionParams struct {
+	ID       uuid.UUID
+	Name     string
+	ParentID *uuid.UUID
+	UserID   uuid.UUID
+}
+
+func (b *Bookmarker) UpdateCollection(_ context.Context, _ UpdateCollectionParams) (Collection, error) {
 	return Collection{}, nil
 }

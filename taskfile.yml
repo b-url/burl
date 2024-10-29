@@ -16,6 +16,11 @@ tasks:
     cmds:
       - "go test -short -v ./..."
 
+  itest:
+    desc: "Run all integration tests"
+    cmds:
+      - "go test -v -run '^TestIntegration_' ./..."
+
   generate-labeler:
     desc: "Re-generate the GitHub labeler config"
     cmds:

@@ -157,3 +157,19 @@ func (r *SQLRepository) GetCollection(ctx context.Context, tx *sql.Tx, id, userI
 
 	return collection, nil
 }
+
+// UpdateCollection updates a collection in the collection table.
+func (r *SQLRepository) UpdateCollection(ctx context.Context, tx *sql.Tx, collection Collection) (Collection, error) {
+	query := `
+		UPDATE collections
+		SET name = $1, parent_id = $2
+		WHERE id = $3 AND user_id = $4
+	`
+
+	_, err := tx.ExecContext(ctx, query, collection.Name, collection.ParentID, collection.ID, collection.UserID)
+	if err != nil {
+		return Collection{}, err
+	}
+
+	return collection, nil
+}
