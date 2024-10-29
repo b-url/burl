@@ -108,3 +108,52 @@ func (r *SQLRepository) GetBookmark(ctx context.Context, tx *sql.Tx, id, userID 
 
 	return bookmark, nil
 }
+
+// CreateCollection creates a new collection in the collection table
+func (r *SQLRepository) CreateCollection(ctx context.Context, tx *sql.Tx, collection Collection) (Collection, error) {
+	query := `
+		INSERT INTO collections (id, user_id, name, parent_id)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, create_time, update_time
+	`
+	row := tx.QueryRowContext(
+		ctx,
+		query,
+		collection.ID,
+		collection.UserID,
+		collection.Name,
+		collection.ParentID,
+	)
+
+	err := row.Scan(&collection.ID, &collection.CreateTime, &collection.UpdateTime)
+	if err != nil {
+		return Collection{}, err
+	}
+
+	return collection, nil
+}
+
+// GetCollection retrieves a collection by its ID.
+func (r *SQLRepository) GetCollection(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Collection, error) {
+	query := `
+		SELECT id, user_id, name, parent_id, create_time, update_time
+		FROM collections
+		WHERE id = $1 AND user_id = $2
+	`
+	row := tx.QueryRowContext(ctx, query, id, userID)
+
+	collection := Collection{}
+	err := row.Scan(
+		&collection.ID,
+		&collection.UserID,
+		&collection.Name,
+		&collection.ParentID,
+		&collection.CreateTime,
+		&collection.UpdateTime,
+	)
+	if err != nil {
+		return Collection{}, err
+	}
+
+	return collection, nil
+}

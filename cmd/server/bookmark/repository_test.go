@@ -115,3 +115,37 @@ func newCollection(t *testing.T, tx *sql.Tx, id uuid.UUID) {
 		t.Fatalf("could not insert collection: %v", err)
 	}
 }
+
+//nolint:tparallel // This test requires a database connection.
+func TestIntegration_CreateCollection(t *testing.T) {
+	t.Parallel()
+
+	db := getDatabase(t)
+	t.Cleanup(func() { db.Close() })
+
+	repo := bookmark.NewRepository(db)
+
+	// Arrange
+	ctx := context.Background()
+	tx, err := db.BeginTx(ctx, nil)
+	require.NoError(t, err)
+
+	// Insert new user.
+	userID := uuid.MustParse("2f618d2d-e65d-4541-b09f-1cf58edc36b4")
+	newUser(t, tx, userID)
+
+	collection := bookmark.Collection{
+		ID:       uuid.MustParse("c7596844-695b-400d-892c-cb1b362b8101"),
+		UserID:   userID,
+		Name:     "testcollection",
+		ParentID: nil,
+	}
+
+	createdCollection, err := repo.CreateCollection(ctx, tx, collection)
+	require.NoError(t, err)
+
+	fetchedCollection, err := repo.GetCollection(ctx, tx, createdCollection.ID, userID)
+	require.NoError(t, err)
+
+	assert.Equal(t, createdCollection.ID, fetchedCollection.ID)
+}
