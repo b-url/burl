@@ -3,10 +3,10 @@ package bookmark
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
 	"time"
 
+	"github.com/b-url/burl/cmd/server/database"
 	"github.com/google/uuid"
 )
 
@@ -26,18 +26,15 @@ type Bookmark struct {
 // Bookmarker is responsible for bookmark-related operations.
 // It encapsulates the bookmark repository and perform related side effects.
 type Bookmarker struct {
-	repository Repository
-	logger     *slog.Logger
+	transactionManager *database.TransactionManager
+	logger             *slog.Logger
 }
 
-type Repository interface {
-	Transactionally(ctx context.Context, f func(tx *sql.Tx) error) (err error)
-	CreateBookmark(ctx context.Context, tx *sql.Tx, bookmark Bookmark) (Bookmark, error)
-	GetBookmark(ctx context.Context, tx *sql.Tx, id, userID uuid.UUID) (Bookmark, error)
-}
-
-func NewBookmarker(repository Repository, logger *slog.Logger) *Bookmarker {
-	return &Bookmarker{repository: repository, logger: logger}
+func NewBookmarker(tm *database.TransactionManager, logger *slog.Logger) *Bookmarker {
+	return &Bookmarker{
+		transactionManager: tm,
+		logger:             logger,
+	}
 }
 
 type CreateBookmarkParams struct {
@@ -65,10 +62,13 @@ func (b *Bookmarker) CreateBookmark(ctx context.Context, params CreateBookmarkPa
 		Title:        params.Title,
 		UserID:       params.UserID,
 	}
-	if err = b.repository.Transactionally(ctx, func(tx *sql.Tx) error {
-		createdBookmark, err = b.repository.CreateBookmark(ctx, tx, bookmark)
-		if err != nil {
-			return err
+	if err = b.transactionManager.Transactionally(ctx, func(tx database.Conn) error {
+		repository := NewRepository(tx)
+
+		var txErr error
+		createdBookmark, txErr = repository.CreateBookmark(ctx, bookmark)
+		if txErr != nil {
+			return txErr
 		}
 
 		return nil
@@ -81,20 +81,7 @@ func (b *Bookmarker) CreateBookmark(ctx context.Context, params CreateBookmarkPa
 
 // GetBookmark retrieves a bookmark by its ID and user ID.
 func (b *Bookmarker) GetBookmark(ctx context.Context, id, userID uuid.UUID) (Bookmark, error) {
-	bookmark := Bookmark{}
-	err := b.repository.Transactionally(ctx, func(tx *sql.Tx) error {
-		var err error
-		bookmark, err = b.repository.GetBookmark(ctx, tx, id, userID)
-		if err != nil {
-			// TODO: Marshal error model.
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return bookmark, err
-	}
-
-	return bookmark, nil
+	repository := NewRepository(b.transactionManager.Database())
+	// TODO: Error mapping of databse errors.
+	return repository.GetBookmark(ctx, id, userID)
 }
