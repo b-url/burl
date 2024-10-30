@@ -38,7 +38,7 @@ func (c *TransactionManager) Database() *sql.DB {
 
 // Transactionally executes a function within a database transaction. It commits the transaction
 // if the function succeeds, otherwise it rolls back. If rollback fails, both errors are returned.
-func (c *TransactionManager) Transactionally(ctx context.Context, f func(tx Conn) error) error {
+func (c *TransactionManager) Transactionally(ctx context.Context, f func(tx Conn) error) (err error) {
 	tx, err := c.db.BeginTx(ctx, nil)
 	if err != nil {
 		c.logger.ErrorContext(ctx, "failed to begin transaction", "error", err)
@@ -54,16 +54,19 @@ func (c *TransactionManager) Transactionally(ctx context.Context, f func(tx Conn
 				c.logger.ErrorContext(ctx, "panic occurred", "panic", p)
 				err = fmt.Errorf("panic occurred: %v", p)
 			}
+			return
+		}
+
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				c.logger.ErrorContext(ctx, "transaction rollback error", "rollback error", rbErr, "original error", err)
+				err = fmt.Errorf("transaction rollback error: %w, original error: %w", rbErr, err)
+			}
 		}
 	}()
 
 	err = f(tx)
 	if err != nil {
-		if rbErr := tx.Rollback(); rbErr != nil {
-			c.logger.ErrorContext(ctx, "transaction rollback error", "rollback error", rbErr, "original error", err)
-			return fmt.Errorf("transaction rollback error: %w, original error: %w", rbErr, err)
-		}
-		c.logger.ErrorContext(ctx, "transaction function error", "error", err)
 		return err
 	}
 
