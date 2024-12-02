@@ -22,6 +22,8 @@ const (
 // Config represents the configuration of the burl command.
 type Config struct {
 	APIURL string `yaml:"api_url"`
+	DBURL  string `yaml:"db_url"`
+	DBPASS string `yaml:"db_pass"`
 }
 
 func New() (Config, error) {

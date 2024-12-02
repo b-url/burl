@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"runtime"
 
 	"github.com/b-url/burl/cmd/burl/config"
 	"github.com/spf13/cobra"
@@ -37,7 +38,14 @@ var editConfigCommand = &cobra.Command{
 			return err
 		}
 
-		cmd := exec.Command("vi", filepath)
+		editorName := os.Getenv("EDITOR")
+		if runtime.GOOS == "windows" {
+			editorName = "notepad"
+		}
+		if editorName == "" {
+			editorName = "vi"
+		}
+		cmd := exec.Command(editorName, filepath)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 
